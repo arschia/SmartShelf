@@ -1,0 +1,213 @@
+/* SMARTSHELF Tablet Camera Kiosk Stylesheet - Lightweight, Zero Heavy Blur */
+
+@import "/assets/css/tokens.css";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-plum);
+  color: #FFFDF9;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.camera-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+}
+
+.camera-header {
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  height: 52px;
+  background-color: rgba(50, 17, 38, 0.85);
+  border-block-end: 1px solid rgba(255, 253, 249, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--space-4);
+  z-index: 20;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brand-text {
+  font-weight: 800;
+  font-size: var(--font-base);
+  letter-spacing: 0.5px;
+}
+
+.role-badge {
+  background-color: rgba(255, 253, 249, 0.15);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-xs);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-xs);
+  background-color: rgba(255, 253, 249, 0.1);
+  border: 1px solid rgba(255, 253, 249, 0.2);
+}
+
+.status-badge.online {
+  background-color: rgba(134, 239, 172, 0.15);
+  border-color: rgba(134, 239, 172, 0.4);
+  color: #86efac;
+}
+
+.status-badge.offline {
+  background-color: rgba(252, 165, 165, 0.15);
+  border-color: rgba(252, 165, 165, 0.4);
+  color: #fca5a5;
+}
+
+.viewport-container {
+  flex: 1;
+  background-color: #000;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#cameraVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud-overlay {
+  position: absolute;
+  top: 60px;
+  inset-inline-start: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  z-index: 10;
+}
+
+.hud-box {
+  background-color: rgba(50, 17, 38, 0.75);
+  border: 1px solid rgba(255, 253, 249, 0.15);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-xs);
+  display: flex;
+  gap: var(--space-2);
+}
+
+.hud-value {
+  color: #fde047;
+  font-family: var(--font-mono);
+  font-weight: bold;
+}
+
+.camera-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  text-align: center;
+  background-color: rgba(50, 17, 38, 0.95);
+  z-index: 30;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-block-end: var(--space-2);
+}
+
+.camera-controls {
+  height: 64px;
+  background-color: rgba(50, 17, 38, 0.9);
+  border-block-start: 1px solid rgba(255, 253, 249, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--space-4);
+  z-index: 20;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.select-camera {
+  background-color: rgba(255, 253, 249, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 253, 249, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: var(--font-sm);
+}
+
+.control-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: #fff;
+}
+
+.btn-primary {
+  background-color: var(--color-crimson);
+}
+.btn-primary:hover {
+  background-color: var(--color-soft-crimson);
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: rgba(255, 253, 249, 0.3);
+}
+.btn-outline:hover {
+  background-color: rgba(255, 253, 249, 0.1);
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: var(--font-xs);
+}

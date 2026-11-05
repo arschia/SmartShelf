@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-11-02T21:52:35.514898+00:00",
+  "model_version": "mobilenetv2-7",
+  "dataset_hash": "d0c882c208d7b335",
+  "dataset_path": "C:\\Users\\Esi\\.gemini\\antigravity\\scratch\\smartshelf\\ai\\evaluation\\sample_dataset",
+  "total_samples": 20,
+  "known_samples": 15,
+  "unknown_samples": 5,
+  "top1_accuracy": 0.25,
+  "false_recognition_rate": 0.0,
+  "unknown_detection_rate": 1.0,
+  "latency_ms": {
+    "p50": 10.47,
+    "p95": 16.54,
+    "mean": 12.59
+  },
+  "thresholds": {
+    "t_accept": 0.65,
+    "t_margin": 0.08
+  },
+  "per_class": {
+    "PROD-001": {
+      "total": 5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "PROD-002": {
+      "total": 5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "PROD-003": {
+      "total": 5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "unknown": {
+      "total": 5,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  }
+}

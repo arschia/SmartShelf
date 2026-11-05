@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>داشبورد مدیریت | های کلاب SMARTSHELF</title>
+  <link rel="stylesheet" href="/assets/fonts/dana.css">
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/admin/style.css">
+</head>
+<body>
+
+  <!-- PIN Login Overlay -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo" style="text-align: center; margin-bottom: 1rem;">
+        <img src="/assets/img/logo.svg" alt="SMARTSHELF" style="height: 48px; max-width: 100%; margin: 0 auto;">
+      </div>
+      <h2 style="margin-bottom: 0.5rem;" data-i18n="login_title">ورود به پنل مدیریت</h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;" data-i18n="login_subtitle">
+        رمز عبور ادمین (PIN) را وارد کنید
+      </p>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <input type="password" id="pinInput" class="form-control pin-input" maxlength="128" autocomplete="current-password" placeholder="••••" autofocus required>
+        </div>
+        <div id="loginError" style="color: var(--danger); font-size: 0.82rem; margin-bottom: 1rem; display: none;"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.65rem;" data-i18n="login_btn">
+          تأیید و ورود
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- App Container (Shown after authentication) -->
+  <div id="appContainer" class="app-container" style="display: none;">
+    
+    <!-- Top Navbar -->
+    <header class="navbar">
+      <a href="#" class="brand" style="gap: 0.75rem; align-items: center;">
+        <img src="/assets/img/logo.svg" alt="SMARTSHELF" style="height: 34px;">
+      </a>
+
+      <div class="nav-actions">
+        <button id="themeToggleBtn" class="btn btn-secondary btn-sm" title="تغییر تم">
+          🌓
+        </button>
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          <span data-i18n="status_online">سرور فعال</span>
+        </div>
+        <button id="langToggleBtn" class="btn btn-secondary btn-sm">
+          🌐 English
+        </button>
+        <button id="configServerBtn" class="btn btn-secondary btn-sm">
+          ⚙️ تنظیم سرور
+        </button>
+        <button id="logoutBtn" class="btn btn-danger btn-sm" data-i18n="logout">
+          خروج
+        </button>
+      </div>
+    </header>
+
+    <!-- Tabs Navigation Bar -->
+    <nav class="tabs-bar">
+      <a class="tab-btn" href="/shop">🛒 اجرای فروشگاه زنده</a>
+      <a class="tab-btn" href="/bottle">🧠 آزمایشگاه تشخیص بطری</a>
+      <button class="tab-btn active" data-tab="entry_qr">
+        📱 <span data-i18n="tab_entry_qr">ورود مشتری (QR)</span>
+      </button>
+      <button class="tab-btn" data-tab="products">
+        📦 <span data-i18n="tab_products">محصولات و قفسه</span>
+      </button>
+      <button class="tab-btn" data-tab="invoices">
+        🧾 <span data-i18n="tab_invoices">فاکتورها و خریدها</span>
+      </button>
+      <button class="tab-btn" data-tab="devices">
+        📷 <span data-i18n="tab_devices">اتصال تبلت و دوربین</span>
+      </button>
+      <button class="tab-btn" data-tab="overview">
+        📊 <span data-i18n="tab_overview">نمای کلی و آمار</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- TAB 1: Overview (Phase 7 Store Overview) -->
+      <section id="panel_overview" class="tab-panel">
+        <!-- 4 Metric Cards Grid -->
+        <div class="overview-metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">📅</div>
+            <div class="metric-info">
+              <span class="metric-label" data-i18n="metric_today_sessions">جلسات امروز</span>
+              <strong id="metricTodaySessions" class="metric-value">0</strong>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">👤</div>
+            <div class="metric-info">
+              <span class="metric-label" data-i18n="metric_active_customer">مشتری در فروشگاه</span>
+              <strong id="metricActiveCustomer" class="metric-value">آزاد</strong>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">🧾</div>
+            <div class="metric-info">
+              <span class="metric-label" data-i18n="metric_total_invoices">تعداد فاکتورها</span>
+              <strong id="metricTotalInvoices" class="metric-value">0</strong>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">💰</div>
+            <div class="metric-info">
+              <span class="metric-label" data-i18n="metric_total_revenue">فروش شبیه‌سازی‌شده</span>
+              <strong id="metricTotalRevenue" class="metric-value">0 تومان</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Monitoring Section: Slots + Devices -->
+        <div class="overview-live-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-top: 1.25rem;">
+          <!-- 3 Shelf Slots Status -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                🏷️ <span data-i18n="overview_slots_title">وضعیت زنده ۳ جایگاه قفسه</span>
+              </div>
+            </div>
+            <div id="overviewSlotsList" class="overview-slots-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Devices Status -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                📟 <span data-i18n="overview_devices_title">وضعیت تجهیزات متصل</span>
+              </div>
+            </div>
+            <div id="overviewDevicesBox" class="overview-devices-box">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: Entry QR -->
+      <section id="panel_entry_qr" class="tab-panel active">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              📱 <span data-i18n="qr_title">کیوآر کد ورود مشتری (Entry QR)</span>
+            </div>
+            <button id="refreshQrBtn" class="btn btn-secondary btn-sm">
+              🔄 <span data-i18n="refresh_qr">تولید مجدد کد</span>
+            </button>
+          </div>
+
+          <div id="entrySetupNotice" class="card" style="display:none">
+            <p>برای تولید QR و کد ورود مشتری، ابتدا سناریوی فروشگاه را فعال کنید.</p>
+            <a class="btn btn-primary" href="/shop">تنظیم و شروع فروشگاه</a>
+          </div>
+          <!-- Occupied Banner (shown when store has an active customer) -->
+          <div id="store-occupied-banner" class="occupied-card" style="display: none;">
+            <div class="occupied-icon">🚫</div>
+            <h2 data-i18n="store_occupied_title">فروشگاه اشغال است</h2>
+            <p class="occupied-desc" data-i18n="store_occupied_desc">
+              یک مشتری در حال حاضر داخل فروشگاه است. طبق محدودیت MVP تا زمان خروج مشتری فعلی، صدور کد ورود جدید متوقف است.
+            </p>
+            <div class="occupied-meta">
+              <span data-i18n="current_session">جلسه فعال:</span>
+              <strong id="occupied-session-id">#--</strong> | 
+              <span data-i18n="entry_time_label">زمان ورود:</span>
+              <strong id="occupied-session-time">--:--</strong>
+            </div>
+            <button id="viewActiveSessionBtn" class="btn btn-primary btn-sm" style="margin-top: 1rem;">
+              👥 <span data-i18n="goto_sessions">مشاهده و مدیریت جلسات</span>
+            </button>
+          </div>
+
+          <!-- QR Code Display (shown when store is free) -->
+          <div id="qr-active-container" class="qr-box-wrapper">
+            <div class="qr-canvas-card">
+              <p style="text-align:center;margin-bottom:12px">کد ورود مشتری: <strong id="entryShortCode" dir="ltr" style="font-size:28px;letter-spacing:5px">—</strong></p>
+            <div id="qrcode-display" class="qrcode-render"></div>
+              <div class="qr-timer-badge">
+                ⏱️ <span data-i18n="token_validity">اعتبار کد:</span> <span id="qr-countdown">30</span> <span data-i18n="seconds">ثانیه</span>
+              </div>
+            </div>
+            <div class="qr-url-card">
+              <label data-i18n="entry_url_label" style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">
+                آدرس ورود مشتری (جهت تست یا کپی مستقیم):
+              </label>
+              <div class="url-input-group" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" id="entryUrlInput" readonly class="form-control" dir="ltr" style="flex: 1; min-width: 250px;">
+                <button id="copyEntryUrlBtn" class="btn btn-secondary btn-sm" data-i18n="copy_url">کپی لینک</button>
+                <a id="openEntryUrlLink" href="#" target="_blank" class="btn btn-primary btn-sm" data-i18n="open_tab">باز کردن در مرورگر</a>
+              </div>
+              <p class="hint-text" style="margin-top: 0.75rem; font-size: 0.82rem; color: var(--text-muted);" data-i18n="qr_hint">
+                مشتری با اسکن این کیوآر کد با دوربین گوشی، به صفحه سبد خرید متصل می‌شود. توکن هر ۳۰ ثانیه منقضی می‌گردد.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: Sessions -->
+      <section id="panel_sessions" class="tab-panel">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              👥 <span data-i18n="sessions_title">جلسات مشتریان (Customer Sessions)</span>
+            </div>
+            <button id="refreshSessionsBtn" class="btn btn-secondary btn-sm">
+              🔄 <span data-i18n="refresh">بروزرسانی</span>
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="col_session_id">شناسه</th>
+                  <th data-i18n="col_status">وضعیت</th>
+                  <th data-i18n="col_entered_at">زمان ورود</th>
+                  <th data-i18n="col_exited_at">زمان خروج</th>
+                  <th data-i18n="col_duration">مدت حضور</th>
+                  <th data-i18n="col_exit_reason">دلیل خروج</th>
+                  <th data-i18n="col_invoice">فاکتور مرتبط</th>
+                  <th data-i18n="col_actions">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="sessionsTableBody">
+                <tr>
+                  <td colspan="8" class="text-center" data-i18n="loading">در حال بارگذاری...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: Invoices (Phase 7 Invoices List) -->
+      <section id="panel_invoices" class="tab-panel">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              🧾 <span data-i18n="invoices_title">صورتحساب‌ها و فاکتورها (Customer Invoices)</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span id="invoicesCountBadge" class="status-badge status-active">0 فاکتور</span>
+              <button id="refreshInvoicesBtn" class="btn btn-secondary btn-sm">
+                🔄 <span data-i18n="refresh">بروزرسانی</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="col_invoice_id">شماره فاکتور</th>
+                  <th data-i18n="col_session_id">شناسه جلسه</th>
+                  <th data-i18n="col_invoice_time">زمان صدور</th>
+                  <th data-i18n="col_items_count">تعداد اقلام</th>
+                  <th data-i18n="col_total">مبلغ کل (تومان)</th>
+                  <th style="width: 120px; text-align: center;" data-i18n="th_actions">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="invoicesTableBody">
+                <tr>
+                  <td colspan="6" class="text-center" data-i18n="loading">در حال بارگذاری...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: Products (FULLY FUNCTIONAL CRUD & ZONE ASSIGNMENT) -->
+      <section id="panel_products" class="tab-panel">
+        
+        <!-- Shelf Zones / Slots Status & Assignment -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              🏷️ <span data-i18n="shelf_slots_title">وضعیت جایگاه‌های قفسه (۳ اسلات فیزیکی)</span>
+            </div>
+            <button id="openCalibrationBtn" class="btn btn-primary btn-sm">
+              🧠 <span data-i18n="btn_calibration">تشخیص و کالیبراسیون دو مرجعی</span>
+            </button>
+          </div>
+          <div class="slots-grid" id="slotsGrid">
+            <!-- Dynamically populated slots -->
+          </div>
+        </div>
+
+        <!-- Product Catalog CRUD -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              📦 <span data-i18n="product_catalog_title">کاتالوگ و انبار محصولات</span>
+            </div>
+            <button id="addProductBtn" class="btn btn-primary">
+              ➕ <span data-i18n="btn_add_product">محصول جدید</span>
+            </button>
+          </div>
+
+          <!-- Search, Category Filter & View Toggle -->
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; flex: 1;">
+              <input type="text" id="productSearchInput" class="form-control" placeholder="جست‌وجوی نام کالا، SKU، برند یا بارکد..." style="max-width: 320px;" data-i18n-placeholder="search_placeholder">
+              <select id="productCategoryFilter" class="form-control" style="max-width: 200px;">
+                <option value="">همه دسته‌بندی‌ها</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <button type="button" id="viewTableBtn" class="btn btn-primary btn-sm" title="نمای جدول">📋 جدول</button>
+              <button type="button" id="viewCardsBtn" class="btn btn-secondary btn-sm" title="نمای کارت">🗂️ کارت‌ها</button>
+            </div>
+          </div>
+
+          <!-- Products Table View -->
+          <div id="productsTableView" class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 60px;" data-i18n="th_image">تصویر</th>
+                  <th data-i18n="th_name">نام و برند</th>
+                  <th data-i18n="th_sku">کد SKU</th>
+                  <th>بارکد GTIN</th>
+                  <th>دسته‌بندی</th>
+                  <th data-i18n="th_price">قیمت واحد (تومان)</th>
+                  <th>موجودی</th>
+                  <th data-i18n="th_slot">جایگاه قفسه</th>
+                  <th data-i18n="th_status">وضعیت</th>
+                  <th style="width: 130px; text-align: center;" data-i18n="th_actions">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="productsTableBody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Products Cards View -->
+          <div id="productsCardsView" class="products-cards-grid" style="display: none;">
+            <!-- Dynamically populated cards -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: Devices & Camera Sensor -->
+      <section id="panel_devices" class="tab-panel">
+        <!-- Live Tablet Camera Feed Card -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              📷 <span data-i18n="cam_feed_title">پیش‌نمایش زنده حسگر دوربین تبلت (Tablet Camera Feed)</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <span id="camFeedOnlineBadge" class="status-badge status-inactive">آفلاین</span>
+              <button id="genPairingCodeBtn" class="btn btn-primary btn-sm">🔑 <span data-i18n="gen_pairing_code">کد جفت‌سازی دوربین</span></button>
+              <button id="refreshCameraFeedBtn" class="btn btn-secondary btn-sm">🔄 <span data-i18n="refresh">بروزرسانی</span></button>
+            </div>
+          </div>
+
+          <!-- Pairing Code Display Card -->
+          <div id="pairingCodeCard" class="card" style="display: none; background: rgba(0, 180, 216, 0.08); border: 2px dashed rgba(0, 180, 216, 0.4); margin: 0.75rem 0; padding: 1.25rem; border-radius: var(--radius-lg, 12px);">
+            <div id="pairingCodePendingBox">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                  <span style="font-weight: bold; color: var(--text-primary); font-size: 0.95rem;">کد جفت‌سازی تبلت (معتبر تا ۵ دقیقه):</span>
+                  <div id="pairingCodeDisplay" style="font-family: monospace; font-size: 2.6rem; font-weight: 900; letter-spacing: 0.35em; color: var(--primary, #b72d52); margin: 0.4rem 0;">------</div>
+                </div>
+                <div id="pairingTimerDisplay" class="status-badge" style="background: rgba(0, 180, 216, 0.2); color: var(--text-primary); font-size: 1rem; padding: 6px 12px; border-radius: 8px;">
+                  ⏱️ ۰۵:۰۰
+                </div>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.5rem 0 0.75rem 0;">
+                این کد ۶ رقمی را در صفحه حسگر تبلت (<strong dir="ltr">/camera</strong>) وارد کنید یا از لینک مستقیم زیر استفاده نمایید:
+              </p>
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="cameraDirectUrlInput" readonly class="form-control" dir="ltr" style="flex: 1; min-width: 250px; font-size: 0.85rem;">
+                <button type="button" id="copyCameraUrlBtn" class="btn btn-secondary btn-sm">📋 کپی لینک تبلت</button>
+                <a id="openCameraUrlLink" href="/camera/" target="_blank" class="btn btn-outline btn-sm">🚀 باز کردن صفحه دوربین</a>
+              </div>
+            </div>
+
+            <!-- Shown when tablet is actively paired and streaming -->
+            <div id="pairingCodeSuccessBox" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.85rem;">
+                  <span style="font-size: 2.2rem; line-height: 1;">🟢</span>
+                  <div>
+                    <div style="font-weight: 800; font-size: 1.15rem; color: #15803d;">تبلت دوربین با موفقیت متصل و همگام شد!</div>
+                    <div id="pairedTabletInfo" style="font-size: 0.85rem; color: #166534; margin-top: 0.25rem;">در حال دریافت زنده فریم‌های تبلت و ارسال به موتور هوش مصنوعی قفسه</div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <span class="status-badge status-active">آنلاین</span>
+                  <button type="button" class="btn btn-secondary btn-sm" id="reGenCodeBtn">🔄 تولید کد جدید</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p id="rtcMonitorHint" role="status" aria-live="polite">نمایش زنده با WebRTC · هدف 720p / 30 FPS</p>
+          <div class="camera-monitor-layout">
+            <div class="camera-stream-wrapper" style="position: relative;">
+              <video id="cameraStreamVideo" autoplay playsinline muted class="camera-stream-img" style="display: none;"></video>
+              <canvas id="aiVisionCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
+              <img id="cameraStreamImg" src="/assets/img/smart_shelf.png" alt="" class="camera-stream-img" style="display:none">
+              <div id="noStreamOverlay" class="no-stream-overlay">
+                <div class="no-stream-icon">📷</div>
+                <div id="rtcOverlayHint">در انتظار اتصال ویدیوی زنده…</div>
+                <small data-i18n="open_camera_hint">در تبلت آدرس /camera را باز کنید</small>
+              </div>
+            </div>
+
+            <div class="camera-telemetry-box">
+              <div class="telemetry-card">
+                <span class="telemetry-label" data-i18n="telemetry_fps">نرخ فریم ویدیوی زنده:</span>
+                <strong id="camTelemetryFps" class="telemetry-val">0.0 FPS</strong>
+              </div>
+              <div class="telemetry-card">
+                <span class="telemetry-label" data-i18n="telemetry_res">رزولوشن فریم:</span>
+                <strong id="camTelemetryRes" class="telemetry-val">--</strong>
+              </div>
+              <div class="telemetry-card">
+                <span class="telemetry-label" data-i18n="telemetry_frames">مجموع فریم‌ها:</span>
+                <strong id="camTelemetryFrames" class="telemetry-val">0</strong>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Devices List Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              📟 <span data-i18n="devices_title">دستگاه‌های متصل شبکه (Registered Devices)</span>
+            </div>
+            <button id="refreshDevicesBtn" class="btn btn-secondary btn-sm">
+              🔄 <span data-i18n="refresh">بروزرسانی</span>
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="col_device_id">شناسه دستگاه</th>
+                  <th data-i18n="col_device_role">نقش دستگاه</th>
+                  <th data-i18n="col_status">وضعیت اتصال</th>
+                  <th data-i18n="col_last_seen">آخرین فعالیت</th>
+                </tr>
+              </thead>
+              <tbody id="devicesTableBody">
+                <tr>
+                  <td colspan="4" class="text-center" data-i18n="loading">در حال بارگذاری...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: Events (Phase 6 Real-time Event Log) -->
+      <section id="panel_events" class="tab-panel">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              📜 <span data-i18n="events_title">لاگ رویدادهای زنده سیستم (System Events Log)</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span id="eventsCountBadge" class="status-badge status-active">0 رویداد</span>
+              <button id="refreshEventsBtn" class="btn btn-secondary btn-sm">
+                🔄 <span data-i18n="refresh">بروزرسانی</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Events Filter / Search -->
+          <div style="margin-bottom: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <input type="text" id="eventSearchInput" class="form-control" placeholder="جست‌وجوی رویداد، کالا، جلسه..." style="max-width: 300px;" data-i18n-placeholder="search_event_placeholder">
+            <select id="eventTypeFilter" class="form-control" style="max-width: 220px;">
+              <option value="">همه انواع رویدادها</option>
+              <option value="PRODUCT_PICKED">برداشت کالا (PRODUCT_PICKED)</option>
+              <option value="PRODUCT_RETURNED">بازگشت کالا (PRODUCT_RETURNED)</option>
+              <option value="CUSTOMER_ENTERED">ورود مشتری (CUSTOMER_ENTERED)</option>
+              <option value="SESSION_CLOSED">خروج مشتری (SESSION_CLOSED)</option>
+              <option value="DEVICE_CONNECTED">اتصال دستگاه (DEVICE_CONNECTED)</option>
+              <option value="DEVICE_DISCONNECTED">قطع دستگاه (DEVICE_DISCONNECTED)</option>
+            </select>
+          </div>
+
+          <!-- Events Table -->
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 140px;" data-i18n="th_event_time">زمان رویداد</th>
+                  <th data-i18n="th_event_type">نوع رویداد</th>
+                  <th data-i18n="th_session_id">شناسه جلسه</th>
+                  <th data-i18n="th_zone">جایگاه</th>
+                  <th data-i18n="th_product">کالا / جزئیات</th>
+                  <th data-i18n="th_confidence">اطمینان</th>
+                  <th data-i18n="th_status">وضعیت پردازش</th>
+                </tr>
+              </thead>
+              <tbody id="eventsTableBody">
+                <tr>
+                  <td colspan="7" class="text-center" data-i18n="loading">در حال بارگذاری رویدادها...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <!-- TAB 8: Recognition Lab (Phase 7) -->
+      <section id="panel_recognition" class="tab-panel">
+        <!-- Integrated two-reference presence/removal calibration module -->
+        <div class="card" style="margin-bottom:1.25rem;border:1px solid var(--border-default);">
+          <div class="card-header" style="flex-wrap:wrap;gap:.75rem;">
+            <div class="card-title">🧠 <span>تشخیص حضور و برداشتن محصول با دو مرجع</span></div>
+            <span class="status-badge status-active">SIFT / ORB + RANSAC</span>
+          </div>
+          <p style="font-size:.88rem;line-height:1.9;color:var(--text-secondary);margin:.25rem 0 .75rem;">
+            برای هر جایگاه یک تصویر با محصول و یک تصویر از همان جایگاه در حالت خالی ثبت کنید. ویژگی‌های مرجع در دیتابیس ذخیره می‌شوند و پایپ‌لاین اصلی دوربین از همین کالیبراسیون استفاده می‌کند.
+          </p>
+          <iframe id="presenceAdminFrame" title="کالیبراسیون و تشخیص دو مرجعی SmartShelf"
+            src="about:blank" referrerpolicy="same-origin"
+            style="display:block;width:100%;height:1250px;min-height:900px;border:0;border-radius:10px;background:#0b1220;"></iframe>
+        </div>
+        <div class="card" style="margin-bottom:1.25rem;border-right:4px solid #d89b3c;">
+          <strong>توجه درباره شناسایی هویت محصول</strong>
+          <p style="font-size:.86rem;line-height:1.9;color:var(--text-secondary);margin:.35rem 0 0;">
+            تشخیص حاضر/خالی بودن جایگاه با شناسایی نام محصول دو مرحله مستقل هستند. ارزیابی فعلی مدل MobileNet در مجموعه آزمایشی کوچک پروژه، دقت Top-1 برابر ۵۰٪ گزارش کرده است؛ تا زمان افزایش داده‌های واقعی و ارزیابی مجدد، نتیجه شناسایی محصول باید بازبینی شود و مبنای قطعی شارژ مشتری قرار نگیرد.
+          </p>
+        </div>
+
+        <!-- Recognition Engine Status Banner -->
+        <div class="card" style="margin-bottom: 1.25rem;">
+          <div class="card-header" style="flex-wrap: wrap; gap: 0.75rem;">
+            <div class="card-title">
+              🧠 <span>وضعیت موتور شناسایی محلی (Product Recognition Engine)</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span id="recEngineBadge" class="status-badge status-active">MobileNetV2-7 • CPU</span>
+              <button id="rebuildRecIndexBtn" class="btn btn-secondary btn-sm">🔄 بازسازی شاخص برداری</button>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
+            <div class="telemetry-card">
+              <span class="telemetry-label">بردارهای ثبت‌شده در RAM:</span>
+              <strong id="recVectorsCount" class="telemetry-val">0</strong>
+            </div>
+            <div class="telemetry-card">
+              <span class="telemetry-label">تعداد محصولات شاخص:</span>
+              <strong id="recProductsCount" class="telemetry-val">0</strong>
+            </div>
+            <div class="telemetry-card">
+              <span class="telemetry-label">آستانه پذیرش (T_ACCEPT):</span>
+              <strong id="recAcceptThreshold" class="telemetry-val">0.65</strong>
+            </div>
+            <div class="telemetry-card">
+              <span class="telemetry-label">حاشیه اطمینان (T_MARGIN):</span>
+              <strong id="recMarginThreshold" class="telemetry-val">0.08</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Recognition Test Studio: 2 Columns -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+          <!-- Left Column: Image Input & Camera -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                📷 <span>ارسال تصویر جهت شناسایی</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+              <label class="btn btn-secondary btn-sm" style="cursor: pointer; margin: 0;">
+                📁 انتخاب فایل تصویر
+                <input type="file" id="recFileInput" accept="image/*" style="display: none;">
+              </label>
+              <button type="button" id="recToggleCameraBtn" class="btn btn-secondary btn-sm">
+                📹 استفاده از دوربین زنده
+              </button>
+            </div>
+
+            <!-- Camera Viewport (Hidden by default) -->
+            <div id="recCameraContainer" style="display: none; background: #000; border-radius: var(--radius-md); padding: 0.5rem; margin-bottom: 0.75rem; text-align: center;">
+              <div style="position: relative; max-width: 400px; margin: 0 auto; aspect-ratio: 4/3; background: #111; overflow: hidden; border-radius: 8px;">
+                <video id="recCameraVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <canvas id="recCameraCanvas" style="display: none;"></canvas>
+              </div>
+              <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; justify-content: center;">
+                <button type="button" id="recSnapCameraBtn" class="btn btn-primary btn-sm">⚡ ثبت فریم دوربین</button>
+                <button type="button" id="recCloseCameraBtn" class="btn btn-ghost btn-sm" style="color: #FFF;">✕ بستن دوربین</button>
+              </div>
+            </div>
+
+            <!-- Selected Image Preview -->
+            <div style="text-align: center; background: var(--bg-muted); border-radius: var(--radius-md); padding: 0.75rem; border: 1px dashed var(--border-default); min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <img id="recPreviewImg" src="/static/placeholder.png" alt="Test Image Preview" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 6px; display: none;">
+              <div id="recNoImagePlaceholder" class="text-muted" style="font-size: 0.85rem;">
+                تصویری انتخاب یا ضبط نشده است
+              </div>
+            </div>
+
+            <div style="margin-top: 1rem;">
+              <button type="button" id="runRecognitionBtn" class="btn btn-primary" style="width: 100%;" disabled>
+                🚀 اجرای شناسایی کالا (Inference)
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Column: Recognition Result, Top-3, & Fusion -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                🎯 <span>نتیجه تصمیم‌گیری و ترکیب با بارکد</span>
+              </div>
+            </div>
+
+            <div id="recResultDetails">
+              <div class="text-center text-muted" style="padding: 2.5rem;">
+                هنوز تصویری جهت پردازش ارسال نشده است. تصویر را بارگذاری کرده و دکمه شناسایی را بزنید.
+              </div>
+            </div>
+
+            <!-- Feedback & Ground-Truth Reinforcement Box -->
+            <div id="recFeedbackBox" style="display: none; margin-top: 1.25rem; border-top: 1px solid var(--border-default); padding-top: 1rem;">
+              <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem;">
+                ✅ ثبت بازخورد و تقویت شاخص کالا (Ground-Truth):
+              </label>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <select id="recCorrectProductSelect" class="form-control" style="flex: 1; min-width: 180px;">
+                  <!-- Populated with products -->
+                </select>
+                <button type="button" id="recSubmitFeedbackBtn" class="btn btn-secondary btn-sm">
+                  ➕ اتصال این تصویر به کالا
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Section: Latest Evaluation Report Benchmark -->
+        <div class="card">
+          <div class="card-header" style="flex-wrap: wrap; gap: 0.5rem;">
+            <div class="card-title">
+              📊 <span>آخرین گزارش ارزیابی دقت و معیارها (Evaluation Report)</span>
+            </div>
+            <button id="refreshEvalReportBtn" class="btn btn-secondary btn-sm">🔄 بروزرسانی گزارش</button>
+          </div>
+          <div id="recEvalReportContainer">
+            <div class="text-center text-muted" style="padding: 1.5rem;">در حال دریافت گزارش ارزیابی...</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Product Modal (Add / Edit Multi-step Form - Phase 6) -->
+  <div id="productModal" class="modal">
+    <div class="modal-card" style="max-width: 680px; width: 95%;">
+      <div class="modal-header">
+        <h3 id="productModalTitle" class="modal-title" data-i18n="modal_add_title">مدیریت محصول (فرم چندمرحله‌ای)</h3>
+        <button id="closeModalBtn" class="modal-close">&times;</button>
+      </div>
+
+      <!-- Step Wizard Indicator -->
+      <div class="form-steps" id="productStepNav" style="padding-inline: 1.5rem; padding-top: 1rem;">
+        <button type="button" class="step-indicator-item active" data-step="1">
+          <span class="step-num">۱</span>
+          <span>اطلاعات پایه</span>
+        </button>
+        <button type="button" class="step-indicator-item" data-step="2">
+          <span class="step-num">۲</span>
+          <span>شناسه بارکد GTIN</span>
+        </button>
+        <button type="button" class="step-indicator-item" data-step="3">
+          <span class="step-num">۳</span>
+          <span>تصاویر و زاویه‌ها</span>
+        </button>
+        <button type="button" class="step-indicator-item" data-step="4">
+          <span class="step-num">۴</span>
+          <span>جایگاه قفسه</span>
+        </button>
+      </div>
+
+      <form id="productForm">
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+          <input type="hidden" id="editProductId">
+
+          <!-- STEP 1: Basic Info -->
+          <div id="stepPanel1" class="form-step-panel active">
+            <div class="form-group">
+              <label class="form-label" data-i18n="form_name">نام محصول *</label>
+              <input type="text" id="prodName" class="form-control" required placeholder="مثال: شیر کاکائو فرادما کاله">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label class="form-label">برند کالا</label>
+                <input type="text" id="prodBrand" class="form-control" placeholder="مثال: کاله، میهن، پگاه...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">دسته‌بندی</label>
+                <input type="text" id="prodCategory" class="form-control" list="categorySuggestions" placeholder="مثال: لبنیات، نوشیدنی...">
+                <datalist id="categorySuggestions">
+                  <option value="لبنیات">
+                  <option value="نوشیدنی">
+                  <option value="تنقلات">
+                  <option value="شوینده">
+                  <option value="صبحانه">
+                </datalist>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label class="form-label" data-i18n="form_sku">کد SKU *</label>
+                <input type="text" id="prodSku" class="form-control" required placeholder="MILK-001" dir="ltr">
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="form_price">قیمت واحد (تومان) *</label>
+                <input type="number" id="prodPrice" class="form-control" min="100" required placeholder="35000">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" data-i18n="form_desc">توضیحات</label>
+              <textarea id="prodDesc" class="form-control" rows="2" placeholder="توضیحات اختیاری درباره حجم و مشخصات فیزیکی"></textarea>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+              <input type="checkbox" id="prodIsActive" checked style="width: 16px; height: 16px; accent-color: var(--accent-primary);">
+              <label for="prodIsActive" style="font-size: 0.88rem; cursor: pointer;" data-i18n="form_active">کالا فعال و قابل عرضه در فروشگاه است</label>
+            </div>
+          </div>
+
+          <!-- STEP 2: GTIN -->
+          <div id="stepPanel2" class="form-step-panel">
+            <div class="form-group">
+              <label class="form-label">بارکد استاندارد GS1 (GTIN) *</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="prodGtin" class="form-control" dir="ltr" placeholder="مثال: 4006381333931 یا 036000291452" style="font-family: monospace; font-size: 1.1rem; letter-spacing: 1px;">
+                <button type="button" id="startBarcodeScanBtn" class="btn btn-secondary" title="اسکن با دوربین">
+                  📷 اسکن بارکد
+                </button>
+              </div>
+              <div id="gtinValidationStatus" style="margin-top: 0.4rem; font-size: 0.82rem;"></div>
+              <span class="form-hint" style="margin-top: 0.3rem;">طول ۸، ۱۲، ۱۳ یا ۱۴ رقمی استاندارد GS1. ارقام فارسی/عربی خودکار تبدیل و صفر ابتدایی حفظ می‌شود.</span>
+            </div>
+
+            <!-- Barcode Scanner Modal/In-form Viewport -->
+            <div id="barcodeScannerBox" style="display: none; background: #000; border-radius: var(--radius-md); padding: var(--space-2); margin-top: var(--space-3); text-align: center;">
+              <div style="color: #FFF; font-size: 0.85rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>📷 بارکد محصول را مقابل دوربین قرار دهید:</span>
+                <button type="button" id="stopBarcodeScanBtn" class="btn btn-ghost btn-sm" style="color: #FFF;">✕ بستن اسکنر</button>
+              </div>
+              <div style="position: relative; max-width: 400px; margin: 0 auto; aspect-ratio: 4/3; background: #111; overflow: hidden; border-radius: 8px;">
+                <video id="barcodeVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <div style="position: absolute; inset: 20%; border: 2px dashed #00B4D8; border-radius: 8px; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);"></div>
+              </div>
+              <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; justify-content: center; align-items: center; flex-wrap: wrap;">
+                <button type="button" id="captureBarcodeFrameBtn" class="btn btn-primary btn-sm">⚡ ثبت فریم بارکد</button>
+                <label class="btn btn-secondary btn-sm" style="margin: 0; cursor: pointer;">
+                  📁 آپلود عکس بارکد
+                  <input type="file" id="barcodeImageUploadInput" accept="image/*" style="display: none;">
+                </label>
+              </div>
+              <div id="barcodeScanFeedback" style="color: #FFF; font-size: 0.85rem; margin-top: 0.4rem;"></div>
+            </div>
+          </div>
+
+          <!-- STEP 3: Images -->
+          <div id="stepPanel3" class="form-step-panel">
+            <!-- Angle Guidance -->
+            <div class="angle-guide-card">
+              <strong>💡 راهنمای تصاویر برای موتور بینایی و هوش مصنوعی:</strong>
+              <div>پیشنهاد می‌شود ۵ تا ۱۰ تصویر باکیفیت و با زاویه‌های متنوع ثبت نمایید:</div>
+              <div class="angle-chips">
+                <span class="angle-chip">جلو (Front)</span>
+                <span class="angle-chip">پشت (Back)</span>
+                <span class="angle-chip">سمت راست (Right)</span>
+                <span class="angle-chip">سمت چپ (Left)</span>
+                <span class="angle-chip">نمای بالا (Top)</span>
+                <span class="angle-chip">زاویه مورب (Diagonal)</span>
+                <span class="angle-chip">نور متفاوت (Lighting)</span>
+              </div>
+            </div>
+
+            <!-- Upload Controls & Camera -->
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <label class="btn btn-secondary btn-sm" style="cursor: pointer; margin: 0;">
+                  📁 انتخاب فایل‌های تصویر (چندتایی)
+                  <input type="file" id="prodMultipleImagesInput" multiple accept="image/png,image/jpeg,image/webp" style="display: none;">
+                </label>
+                <button type="button" id="openTabletCameraBtn" class="btn btn-secondary btn-sm">
+                  📸 عکس‌برداری با دوربین تبلت
+                </button>
+              </div>
+              <span id="productImagesCountBadge" class="status-badge" style="background: var(--bg-muted); color: var(--text-primary);">۰ تصویر</span>
+            </div>
+
+            <!-- In-form Tablet Camera Snapshot Box -->
+            <div id="tabletCameraBox" style="display: none; background: #000; border-radius: var(--radius-md); padding: var(--space-3); margin-bottom: 1rem; text-align: center;">
+              <div style="color: #FFF; font-size: 0.85rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>📸 عکاسی مستقیم از کالا: کالا را مقابل دوربین نگه دارید</span>
+                <button type="button" id="closeTabletCameraBtn" class="btn btn-ghost btn-sm" style="color: #FFF;">✕ بستن دوربین</button>
+              </div>
+              <div style="position: relative; max-width: 440px; margin: 0 auto; aspect-ratio: 4/3; background: #111; overflow: hidden; border-radius: 8px;">
+                <video id="tabletCameraVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <canvas id="tabletCameraCanvas" style="display: none;"></canvas>
+              </div>
+              <div style="margin-top: 0.75rem;">
+                <button type="button" id="snapPhotoBtn" class="btn btn-primary">
+                  📸 گرفتن عکس و افزودن به محصول
+                </button>
+              </div>
+            </div>
+
+            <!-- Existing Images Gallery -->
+            <div id="productImagesGallery" class="product-images-grid">
+              <!-- Dynamically populated thumbnails -->
+            </div>
+            <div id="noImagesNotice" class="text-center text-muted" style="padding: 1.5rem; border: 1px dashed var(--border-default); border-radius: var(--radius-md); margin-top: 0.5rem;">
+              هنوز تصویری برای این کالا افزوده نشده است. از دکمه‌های بالا برای افزودن فایل یا عکس‌برداری با تبلت استفاده کنید.
+            </div>
+          </div>
+
+          <!-- STEP 4: Shelf Slot Assignment -->
+          <div id="stepPanel4" class="form-step-panel">
+            <div class="card" style="margin-bottom: 1rem; border-color: var(--border-strong);">
+              <div class="card-title" style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                🏷️ تخصیص جایگاه فیزیکی در قفسه هوشمند
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                می‌توانید کالا را مستقیماً به یکی از ۳ جایگاه اختصاص دهید، یا بعداً از طریق بخش جایگاه‌ها آن را تغییر دهید.
+              </p>
+              <div class="form-group">
+                <label class="form-label">جایگاه قفسه:</label>
+                <select id="prodSlotSelect" class="form-control">
+                  <option value="">بدون جایگاه (آزاد در انبار)</option>
+                  <option value="1">جایگاه ۱ (Slot 1)</option>
+                  <option value="2">جایگاه ۲ (Slot 2)</option>
+                  <option value="3">جایگاه ۳ (Slot 3)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Product Summary Review Card -->
+            <div class="card" style="background: var(--bg-muted);">
+              <div class="card-title" style="font-size: 0.9rem; margin-bottom: 0.5rem;">
+                📋 خلاصه‌ی اطلاعات نهایی محصول
+              </div>
+              <div id="prodSummaryDetails" style="font-size: 0.85rem; line-height: 1.8;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Wizard Navigation Footer -->
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+          <button type="button" id="prevStepBtn" class="btn btn-secondary" style="visibility: hidden;">
+            ⬅️ مرحله قبلی
+          </button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" id="cancelModalBtn" class="btn btn-secondary" data-i18n="btn_cancel">انصراف</button>
+            <button type="button" id="nextStepBtn" class="btn btn-primary">
+              مرحله بعدی ➡️
+            </button>
+            <button type="submit" id="saveProductBtn" class="btn btn-primary" style="display: none;">
+              💾 ذخیره نهایی محصول
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Shelf Calibration Modal (Phase 5) -->
+  <div id="calibrationModal" class="modal">
+    <div class="modal-card calibration-modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" data-i18n="calib_modal_title">📐 کالیبراسیون بینایی جایگاه‌های قفسه (ROI Calibration)</h3>
+        <button id="closeCalibModalBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="calib-instructions" data-i18n="calib_instructions" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+          ۱. جایگاه مورد نظر را انتخاب کرده و با کشیدن ماوس روی تصویر، مستطیل (ROI) را تنظیم کنید. ۲. دکمه «ذخیره ROI» را بزنید. ۳. برای ثبت مشخصات بصری، دکمه «ثبت مرجع پر» و «ثبت مرجع خالی» را فشار دهید.
+        </p>
+
+        <!-- Slot Selector Pills -->
+        <div class="zone-selector-pills" style="margin-bottom: 0.75rem;">
+          <span style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="select_slot_to_edit">انتخاب جایگاه:</span>
+          <div class="pills-group" id="calibZonePills" style="display: inline-flex; gap: 0.5rem; margin-right: 0.5rem;">
+            <button type="button" class="btn btn-outline btn-sm active" data-zone-id="1">جایگاه ۱ (Slot 1)</button>
+            <button type="button" class="btn btn-outline btn-sm" data-zone-id="2">جایگاه ۲ (Slot 2)</button>
+            <button type="button" class="btn btn-outline btn-sm" data-zone-id="3">جایگاه ۳ (Slot 3)</button>
+          </div>
+        </div>
+
+        <!-- Interactive Canvas Viewport -->
+        <div class="calib-viewport-wrapper" style="position: relative; max-width: 640px; margin: 0 auto; background: #000; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);">
+          <img id="calibStreamImg" src="/static/placeholder.png" alt="Camera Feed" style="width: 100%; display: block;">
+          <canvas id="calibCanvas" style="position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair;"></canvas>
+        </div>
+
+        <!-- Coordinates Display and Save -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="font-size: 0.85rem; display: flex; gap: 0.5rem; align-items: center;">
+            <span>مختصات نسبی:</span>
+            <code>X: <span id="calibRoiX">0.00</span></code>
+            <code>Y: <span id="calibRoiY">0.00</span></code>
+            <code>W: <span id="calibRoiW">0.00</span></code>
+            <code>H: <span id="calibRoiH">0.00</span></code>
+          </div>
+          <button id="saveRoiBtn" class="btn btn-primary btn-sm" data-i18n="btn_save_roi">💾 ذخیره مختصات ROI</button>
+        </div>
+
+        <!-- Reference Capture Buttons -->
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+          <button id="captureFullZoneBtn" class="btn btn-success btn-sm">
+            🟢 <span data-i18n="btn_cap_full">ثبت مرجع پر این جایگاه</span>
+          </button>
+          <button id="captureEmptyZoneBtn" class="btn btn-danger btn-sm">
+            🔴 <span data-i18n="btn_cap_empty">ثبت مرجع خالی این جایگاه</span>
+          </button>
+          <button id="captureAllFullBtn" class="btn btn-secondary btn-sm" style="margin-right: auto;">
+            📸 <span data-i18n="btn_cap_all_full">ثبت مرجع پر (همه ۳ جایگاه)</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeCalibBtn" class="btn btn-secondary" data-i18n="btn_close">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoice Details Modal (Phase 7) -->
+  <div id="invoiceModal" class="modal">
+    <div class="modal-card" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 id="invModalTitle" class="modal-title">🧾 جزئیات فاکتور</h3>
+        <button id="closeInvModalBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body" id="invModalBody">
+        <!-- Rendered invoice lines -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeInvModalFooterBtn" class="btn btn-secondary" data-i18n="btn_close">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Correction Modal (Phase 8) -->
+  <div id="manualCorrectionModal" class="modal">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 id="manualCorrectionTitle" class="modal-title">🏷️ تصحیح دستی شناسایی جایگاه</h3>
+        <button id="closeManualCorrectionBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: var(--font-sm); color: var(--text-muted); margin-block-end: var(--space-3);">
+          کالای واقعی موجود در این جایگاه را انتخاب کنید. فریم فعلی مستقیماً به تصاویر مرجع این کالا افزوده شده و ایندکس برداری در رم به‌روز خواهد شد.
+        </p>
+        <input type="hidden" id="manualCorrectionZoneId" value="">
+        <div class="form-group">
+          <label class="form-label" for="manualCorrectionProductSelect">کالای صحیح کاتالوگ:</label>
+          <select id="manualCorrectionProductSelect" class="form-control">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: var(--space-2);">
+        <button type="button" id="cancelManualCorrectionBtn" class="btn btn-secondary">انصراف</button>
+        <button type="button" id="confirmManualCorrectionBtn" class="btn btn-primary">ثبت تصحیح و آموزش فریم</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- JavaScript -->
+  <script src="/config.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script src="/assets/js/qrcode.min.js"></script>
+  <script src="/assets/js/rtc.js?v=1.4.1"></script>
+  <script src="/admin/app.js?v=1.4.0"></script>
+</body>
+</html>

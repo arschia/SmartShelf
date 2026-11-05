@@ -1,0 +1,1 @@
+Public source distribution uses Vazirmatn v33.003 by the Vazirmatn project, under SIL Open Font License 1.1. See OFL.txt and https://github.com/rastikerdar/vazirmatn. The CSS Dana family name is a compatibility alias; proprietary Dana font binaries are not included.

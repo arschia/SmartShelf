@@ -1,0 +1,57 @@
+# Environment & Secrets
+.env
+*.pem
+*.key
+certs/
+
+# Database
+*.db
+.db*
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite-shm
+*.sqlite-wal
+*.bak
+*.log
+.vercel/
+
+# Python & Caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+node_modules/
+dist/
+build/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Uploads (Keep folder, ignore uploaded images)
+frontend/static/uploads/*
+!frontend/static/uploads/.gitkeep
+
+# IDEs & OS
+data/bottle_dataset/
+ai/runs/
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+
+# Runtime state and local-only media
+data/
+logs/
+backups/
+*.zip
+.env.*
+!.env.example
+.DS_Store

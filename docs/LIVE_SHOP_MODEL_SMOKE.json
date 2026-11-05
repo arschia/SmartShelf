@@ -1,0 +1,34 @@
+{
+  "engine": "Actual bundled YOLO26n ONNX, no mocked classifier",
+  "environment": "Isolated test DB, no user store changes",
+  "steps": [
+    {
+      "photo": "present",
+      "stock": 1,
+      "cart": 0,
+      "state": "PRESENT"
+    },
+    {
+      "photo": "empty",
+      "stock": 0,
+      "cart": 1,
+      "state": "ABSENT"
+    },
+    {
+      "photo": "empty",
+      "stock": 0,
+      "cart": 1,
+      "state": "ABSENT"
+    },
+    {
+      "photo": "present",
+      "stock": 1,
+      "cart": 0,
+      "state": "PRESENT"
+    }
+  ],
+  "initial_cart": 0,
+  "pick_ws": "CART_UPDATED/PICKED",
+  "return_ws": "CART_UPDATED/RETURNED",
+  "passed": true
+}

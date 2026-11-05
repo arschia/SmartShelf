@@ -1,0 +1,199 @@
+/**
+ * SMARTSHELF Motion System
+ * 150ms - 350ms, cubic-bezier(0.2, 0.8, 0.2, 1.0)
+ * Only transform and opacity animations. GPU-accelerated.
+ * Strictly respects prefers-reduced-motion.
+ */
+
+:root {
+  --motion-timing: cubic-bezier(0.2, 0.8, 0.2, 1.0);
+  --motion-duration-fast: 150ms;
+  --motion-duration-normal: 250ms;
+  --motion-duration-slow: 350ms;
+}
+
+/* ==========================================================================
+   1. Cart Add / Remove Actions
+   ========================================================================== */
+@keyframes cartAddGlide {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.anim-cart-add {
+  animation: cartAddGlide var(--motion-duration-slow) var(--motion-timing) forwards;
+}
+
+@keyframes cartRemoveGlide {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-30px) scale(0.92);
+  }
+}
+
+.anim-cart-remove {
+  animation: cartRemoveGlide var(--motion-duration-normal) var(--motion-timing) forwards;
+}
+
+/* ==========================================================================
+   2. Recognition Checkmark Draw (SVG stroke-dasharray)
+   ========================================================================== */
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 48;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.anim-checkmark-draw {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: checkmarkDraw var(--motion-duration-slow) var(--motion-timing) forwards;
+}
+
+/* ==========================================================================
+   3. Unknown Product Shake & Warning Pulse
+   ========================================================================== */
+@keyframes productShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.anim-product-shake {
+  animation: productShake var(--motion-duration-slow) var(--motion-timing);
+}
+
+/* ==========================================================================
+   4. Sheet & Modal Slide / Zoom
+   ========================================================================== */
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.anim-sheet-slide {
+  animation: sheetSlideUp var(--motion-duration-normal) var(--motion-timing) forwards;
+}
+
+@keyframes modalZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anim-modal-scale {
+  animation: modalZoomIn var(--motion-duration-normal) var(--motion-timing) forwards;
+}
+
+/* ==========================================================================
+   5. Ticket Receipt Rollout
+   ========================================================================== */
+@keyframes ticketRollout {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  70% {
+    transform: translateY(-5px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.anim-ticket-rollout {
+  animation: ticketRollout var(--motion-duration-slow) var(--motion-timing) forwards;
+}
+
+/* ==========================================================================
+   6. Count & Price Bump
+   ========================================================================== */
+@keyframes countBump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.22); color: var(--primary); }
+  100% { transform: scale(1); }
+}
+
+.anim-count-bump {
+  display: inline-block;
+  animation: countBump var(--motion-duration-fast) var(--motion-timing);
+}
+
+/* ==========================================================================
+   7. Page Transition Fallback
+   ========================================================================== */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.anim-page-fade {
+  animation: pageFadeIn var(--motion-duration-normal) var(--motion-timing) forwards;
+}
+
+/* ==========================================================================
+   Accessibility: Prefers-Reduced-Motion Override
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .anim-cart-add,
+  .anim-cart-remove,
+  .anim-checkmark-draw,
+  .anim-product-shake,
+  .anim-sheet-slide,
+  .anim-modal-scale,
+  .anim-ticket-rollout,
+  .anim-count-bump,
+  .anim-page-fade {
+    animation: none !important;
+    transform: none !important;
+    stroke-dashoffset: 0 !important;
+    opacity: 1 !important;
+  }
+}

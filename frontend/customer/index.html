@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>سبد خرید هوشمند | SMARTSHELF</title>
+
+  <!-- Design System & Tokens -->
+  <link rel="stylesheet" href="/assets/fonts/dana.css">
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/motion.css">
+
+  <style>
+    body {
+      background-color: var(--bg-canvas);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-block-end: 90px; /* Space for sticky action bar */
+    }
+
+    .customer-header {
+      background-color: var(--bg-surface);
+      border-block-end: 1px solid var(--border-subtle);
+      padding-block: var(--space-3);
+      padding-inline: var(--space-4);
+      position: sticky;
+      top: 0;
+      z-index: var(--z-sticky);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .connection-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: 4px var(--space-2);
+      border-radius: var(--radius-full);
+      font-size: var(--font-xs);
+      font-weight: var(--font-weight-medium);
+      background-color: var(--bg-muted);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+    }
+    .connection-pill.online {
+      background-color: var(--color-success-bg);
+      border-color: var(--color-success-border);
+      color: var(--color-success);
+    }
+    .connection-pill.offline {
+      background-color: var(--color-danger-bg);
+      border-color: var(--color-danger-border);
+      color: var(--color-danger);
+    }
+
+    .offline-banner {
+      background-color: var(--color-warning-bg);
+      border-block-end: 1px solid var(--color-warning-border);
+      color: var(--color-warning);
+      padding: var(--space-2) var(--space-4);
+      font-size: var(--font-xs);
+      font-weight: var(--font-weight-bold);
+      text-align: center;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    .welcome-card {
+      background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-elevated) 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      margin-block-start: var(--space-4);
+      margin-block-end: var(--space-4);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .welcome-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-block-start: var(--space-2);
+      font-size: var(--font-xs);
+      color: var(--text-muted);
+    }
+
+    .cart-section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-block-end: var(--space-3);
+    }
+
+    .cart-items-container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Disconnected Network Alert Banner -->
+  <div id="offlineBanner" class="offline-banner">
+    <span>⚠ ارتباط با سرور فروشگاه قطع شد. در حال تلاش مجدد...</span>
+  </div>
+
+  <!-- Header -->
+  <header class="customer-header">
+    <div style="display: flex; align-items: center; gap: var(--space-2);">
+      <img src="/assets/img/logo.svg" alt="SMARTSHELF" style="height: 32px; width: auto; color: var(--text-primary);">
+    </div>
+    <div style="display: flex; align-items: center; gap: var(--space-2);">
+      <div id="wsBadge" class="connection-pill">
+        <span class="pulse-dot" id="wsPulseDot"></span>
+        <span id="wsStatusText">در حال اتصال...</span>
+      </div>
+      <button id="themeToggleBtn" class="btn btn-ghost btn-sm" type="button" aria-label="تغییر تم" style="min-width: 36px; padding: 0;">
+        🌓
+      </button>
+      <button id="langToggleBtn" class="btn btn-ghost btn-sm" type="button" style="min-width: 36px; font-weight: bold; padding: 0;">
+        EN
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container" style="flex: 1;">
+
+    <!-- 1. Loading State -->
+    <div id="stateLoading" style="padding-block: var(--space-12); text-align: center;">
+      <div class="skeleton skeleton-title" style="margin: 0 auto var(--space-3); width: 60%;"></div>
+      <div class="skeleton skeleton-text" style="margin: 0 auto; width: 40%;"></div>
+      <p style="margin-block-start: var(--space-4); color: var(--text-muted); font-size: var(--font-sm);">
+        در حال اعتبارسنجی نشست ورود...
+      </p>
+    </div>
+
+    <!-- 2. Active Shopping Session View -->
+    <div id="stateActive" style="display: none;" class="anim-page-fade">
+      
+      <!-- Welcome Banner -->
+      <section class="welcome-card anim-cart-add">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h1 style="font-size: var(--font-lg); margin: 0; color: var(--text-primary);">
+            خوش آمدید، جلسه خرید فعال است
+          </h1>
+          <span class="badge badge-success">
+            <span class="pulse-dot pulse-dot-live"></span>
+            ورود موفق
+          </span>
+        </div>
+        <p style="font-size: var(--font-xs); color: var(--text-muted); margin-block-start: var(--space-1); margin-block-end: 0;">
+          هر محصولی را بردارید بلافاصله به سبد شما اضافه می‌شود و با بازگرداندن، حذف می‌گردد.
+        </p>
+        <div class="welcome-meta">
+          <span>شناسه جلسه: <strong id="sessionIdDisplay" style="color: var(--primary);">#--</strong></span>
+          <span>زمان ورود: <strong id="sessionTimeDisplay">--:--</strong></span>
+        </div>
+      </section>
+
+      <!-- Recognizing / Analyzing Indicator (Phase 8) -->
+      <div id="recognizingProductAlert" class="badge badge-info anim-pulse-subtle" style="display: none; width: 100%; padding: var(--space-3); font-size: var(--font-sm); margin-block-end: var(--space-3); border-radius: var(--radius-md); align-items: center; justify-content: center; gap: var(--space-2);">
+        <span class="pulse-dot pulse-dot-live"></span>
+        <span id="recognizingProductText">در حال پردازش و تشخیص هوشمند کالا...</span>
+      </div>
+
+      <!-- Unknown / Uncertain Product Notice (anim-product-shake) -->
+      <div id="uncertainProductAlert" class="badge badge-warning anim-product-shake" style="display: none; width: 100%; padding: var(--space-3); font-size: var(--font-sm); margin-block-end: var(--space-3); border-radius: var(--radius-md);">
+        <span>⚠ محصولی برداشته شد اما به دلیل زاویه دید نیازمند بررسی است و به سبد اضافه نشد.</span>
+      </div>
+
+      <!-- Live Cart Container -->
+      <section style="margin-block-end: var(--space-6);">
+        <div class="cart-section-title">
+          <h2 style="font-size: var(--font-base); margin: 0; display: flex; align-items: center; gap: var(--space-2);">
+            <span>🛒 سبد خرید زنده</span>
+            <span id="cartCountBadge" class="badge badge-neutral">۰ کالا</span>
+          </h2>
+          <button id="openSheetBtn" class="btn btn-ghost btn-sm" type="button" style="color: var(--primary);">
+            جزئیات سبد &larr;
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div id="cartEmptyNotice" class="empty-state" style="display: block;">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119.993Z" />
+          </svg>
+          <div class="empty-state-title">سبد خرید شما فعلاً خالی است</div>
+          <div class="empty-state-desc">محصول دلخواهتان را از قفسه بردارید تا سیستم حسگر خودکار آن را در سبد ثبت نماید.</div>
+          <button id="exitEmptyBtn" class="btn btn-outline btn-sm" type="button" style="margin-block-start: var(--space-3);">
+            🚪 خروج بدون خرید
+          </button>
+        </div>
+
+        <!-- Populated Cart Items -->
+        <div id="cartItemsList" class="cart-items-container" style="display: none;">
+          <!-- Dynamically inserted product-card elements -->
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 3. Invoice View (Checkout completed) -->
+    <div id="stateInvoice" style="display: none; padding-block: var(--space-6);" class="anim-page-fade">
+      <div style="text-align: center; margin-block-end: var(--space-4);">
+        <div style="width: 56px; height: 56px; margin: 0 auto var(--space-2);">
+          <svg viewBox="0 0 48 48" fill="none" style="width: 100%; height: 100%;">
+            <circle cx="24" cy="24" r="22" stroke="var(--color-success)" stroke-width="3" fill="var(--color-success-bg)"/>
+            <path class="anim-checkmark-draw" d="M14 24L21 31L34 17" stroke="var(--color-success)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 style="font-size: var(--font-xl); margin: 0;">پرداخت با موفقیت انجام شد</h2>
+        <p style="color: var(--text-muted); font-size: var(--font-sm); margin-block-start: var(--space-1);">
+          از خرید شما متشکریم، می‌توانید از گیت خروج خارج شوید.
+        </p>
+      </div>
+
+      <!-- Ticket Receipt -->
+      <div class="ticket-receipt anim-ticket-rollout">
+        <div class="ticket-header">
+          <img src="/assets/img/logo-mark.svg" alt="SMARTSHELF" style="width: 38px; height: 38px; margin: 0 auto var(--space-2);">
+          <h3 style="margin-bottom: 2px;">فروشگاه هوشمند خودکار SMARTSHELF</h3>
+          <span style="font-size: var(--font-xs); color: var(--text-muted);" id="invoiceDate">--</span>
+        </div>
+
+        <div id="invoiceLinesContainer">
+          <!-- Lines rendered dynamically -->
+        </div>
+
+        <hr class="ticket-divider">
+
+        <div class="ticket-total">
+          <span>جمع کل پرداخت‌شده:</span>
+          <span id="invoiceTotalDisplay" style="color: var(--primary);">۰ تومان</span>
+        </div>
+
+        <div style="text-align: center; margin-block-start: var(--space-4); font-size: var(--font-xs); color: var(--text-muted);">
+          <span>شناسه فاکتور: <strong id="invoiceNumberDisplay">#--</strong></span>
+          <br>
+          <span style="color: var(--color-success); font-weight: bold; margin-block-start: 4px; display: inline-block;">✓ گیت خروج باز است</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Session Closed View -->
+    <div id="stateClosed" class="empty-state" style="display: none; margin-block-start: var(--space-8);">
+      <div class="empty-state-title">جلسه خرید به پایان رسید</div>
+      <p id="closedReasonText" class="empty-state-desc">این نشست بسته شد. از مراجعه شما متشکریم.</p>
+      <a href="/" class="btn btn-secondary" style="margin-block-start: var(--space-3);">بازگشت به پرتال</a>
+    </div>
+
+    <!-- 5. Error View -->
+    <div id="stateError" class="empty-state" style="display: none; margin-block-start: var(--space-8);">
+      <div class="badge badge-danger" style="margin-bottom: var(--space-2);">خطای دسترسی</div>
+      <div class="empty-state-title">نشست ورود نامعتبر یا منقضی است</div>
+      <p class="empty-state-desc">لطفاً کد QR جدیدی را از روی مانیتور فروشگاه اسکن نمایید.</p>
+      <a href="/enter/" class="btn btn-primary" style="margin-block-start: var(--space-3);">ورود با اسکن QR</a>
+    </div>
+
+  </main>
+
+  <!-- Sticky Bottom Action Bar -->
+  <aside id="customerActionBar" class="sticky-action-bar" style="display: none;">
+    <div class="sticky-action-total">
+      <span class="label">جمع کل خرید:</span>
+      <span class="amount" id="stickyGrandTotal">۰ تومان</span>
+    </div>
+    <button id="checkoutBtn" class="btn btn-primary btn-lg" type="button" disabled>
+      💳 پرداخت و تسویه‌حساب
+    </button>
+  </aside>
+
+  <!-- Cart Details Bottom Sheet -->
+  <div class="sheet-backdrop" id="cartSheetBackdrop"></div>
+  <div class="bottom-sheet" id="cartSheet" aria-hidden="true">
+    <div class="sheet-handle-bar">
+      <div class="sheet-handle"></div>
+    </div>
+    <div class="sheet-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-block-end: var(--space-3);">
+        <h3 style="margin: 0;">جزئیات اقلام سبد خرید</h3>
+        <button id="closeSheetCrossBtn" class="btn btn-ghost btn-sm" type="button">✕</button>
+      </div>
+      <div id="sheetItemsList" style="display: flex; flex-direction: column; gap: var(--space-2); margin-block-end: var(--space-4);">
+        <!-- Items in sheet -->
+      </div>
+      <button id="closeSheetBtn" class="btn btn-secondary" style="width: 100%;" type="button">
+        بستن
+      </button>
+    </div>
+  </div>
+
+  <!-- Exit Without Purchase Confirmation Modal -->
+  <div class="modal-backdrop" id="exitModal" aria-hidden="true">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="margin: 0;">خروج از فروشگاه</h3>
+        <button id="closeModalCrossBtn" class="btn btn-ghost btn-sm" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>سبد خرید شما در حال حاضر خالی است. آیا مایلید جلسه خود را ببندید و خارج شوید؟</p>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelModalBtn" class="btn btn-ghost" type="button">انصراف</button>
+        <button id="confirmExitBtn" class="btn btn-primary" type="button">تأیید و خروج</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/config.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

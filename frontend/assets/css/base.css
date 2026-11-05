@@ -1,0 +1,140 @@
+/**
+ * SMARTSHELF Base Styles
+ * RTL First, Accessible, Responsive Foundation
+ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: var(--lh-relaxed);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  /* Tracking/letter-spacing breaks Persian glyph joining */
+  letter-spacing: 0;
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  transition: background-color var(--duration-normal) var(--ease-standard),
+              color var(--duration-normal) var(--ease-standard);
+}
+
+/* RTL / LTR Root Handling */
+html[dir="rtl"] {
+  direction: rtl;
+  text-align: start;
+}
+
+html[dir="ltr"] {
+  direction: ltr;
+  text-align: start;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--lh-tight);
+  margin-block-end: var(--space-2);
+  letter-spacing: 0;
+}
+
+h1 { font-size: var(--font-2xl); }
+h2 { font-size: var(--font-xl); }
+h3 { font-size: var(--font-lg); }
+h4 { font-size: var(--font-base); }
+h5 { font-size: var(--font-sm); }
+h6 { font-size: var(--font-xs); }
+
+p {
+  margin-block-end: var(--space-3);
+  line-height: var(--lh-relaxed);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ==========================================================================
+   Accessibility & Interactive Controls
+   ========================================================================== */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 1rem; /* >= 16px to prevent iOS auto-zoom */
+  color: inherit;
+  background: transparent;
+  border: none;
+}
+
+button {
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+/* Minimum 44px touch target on interactive elements */
+button,
+.interactive-target,
+.btn,
+.nav-tab-item,
+.stepper-btn {
+  min-height: var(--min-touch-target);
+  min-width: var(--min-touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Utility Containers */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

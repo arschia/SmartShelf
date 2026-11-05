@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>حسگر تبلت دوربین | SMARTSHELF</title>
+
+  <!-- Design System Tokens & Base -->
+  <link rel="stylesheet" href="/assets/fonts/dana.css">
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/camera/style.css">
+</head>
+<body data-theme="dark">
+  <div class="camera-wrapper">
+    <!-- Top Bar Overlay -->
+    <header class="camera-header">
+      <div class="brand">
+        <img src="/assets/img/logo-mark.svg" alt="SMARTSHELF" style="width: 24px; height: 24px;">
+        <span class="brand-text">SMARTSHELF</span>
+        <span class="role-badge" data-i18n="sensorRole">حسگر تبلت</span>
+      </div>
+
+      <div class="header-actions">
+        <span id="wsStatusBadge" class="status-badge connecting">
+          <span class="pulse-dot"></span>
+          <span id="wsStatusText" data-i18n="connecting">در حال اتصال...</span>
+        </span>
+        <button id="fullscreenBtn" class="btn btn-sm btn-outline" title="تمام‌صفحه (Fullscreen)">⛶</button>
+        <button id="configServerBtn" class="btn btn-sm btn-outline" title="تنظیم سرور">⚙️</button>
+        <button id="langToggleBtn" class="btn btn-sm btn-outline">EN</button>
+      </div>
+    </header>
+
+    <!-- Camera Viewport -->
+    <main class="viewport-container">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+
+      <!-- Overlay HUD -->
+      <div class="hud-overlay">
+        <div class="hud-box">
+          <span class="hud-label" data-i18n="deviceIdLabel">شناسه دستگاه:</span>
+          <code id="deviceIdText" class="hud-value">--</code>
+        </div>
+        <div class="hud-box">
+          <span class="hud-label" data-i18n="fpsLabel">نرخ فریم:</span>
+          <span id="fpsCounter" class="hud-value">0 FPS</span>
+        </div>
+        <div class="hud-box">
+          <span class="hud-label" data-i18n="framesSentLabel">فریم‌های ارسالی:</span>
+          <span id="framesSentCounter" class="hud-value">0</span>
+        </div>
+      </div>
+
+      <div style="position:absolute;bottom:90px;left:12px;right:12px;z-index:5;background:#09121ddd;padding:10px;border-radius:10px;text-align:center"><p id="cameraTransportDetail" role="status" aria-live="polite">در انتظار جفت‌سازی و تصویر دوربین…</p><p id="rtcStatus" role="status">ویدیوی زنده: در انتظار دوربین</p><button id="retryTransportBtn" type="button" class="btn btn-sm btn-outline">تلاش مجدد اتصال</button></div>
+
+      <!-- Permission / Error Message -->
+      <div id="cameraErrorBox" class="camera-error" style="display: none;">
+        <div class="error-icon">📷</div>
+        <h3 id="cameraErrorTitle" data-i18n="cameraErrorTitle">خطا در دسترسی به دوربین</h3>
+        <p id="cameraErrorDesc" data-i18n="cameraErrorDesc">
+          بازکردن دوربین کامل نشده است. علت دقیق در این بخش نمایش داده می‌شود.
+        </p>
+        <code id="cameraErrorCode" dir="ltr" style="margin:8px 0;color:#f2bc87"></code>
+        <button id="retryCameraBtn" class="btn btn-primary" data-i18n="retryCameraBtn">تلاش مجدد</button>
+      </div>
+
+      <!-- Pairing Modal Overlay -->
+      <div id="pairingModal" class="camera-error" style="display: none; background: rgba(50, 17, 38, 0.96); z-index: 100;">
+        <div class="error-icon">🔑</div>
+        <h3 data-i18n="pairingTitle">جفت‌سازی تبلت با سرور</h3>
+        <p data-i18n="pairingDesc" style="max-width: 320px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+          کد جفت‌سازی دوربین از تب «دستگاه‌ها» را وارد کنید؛ این کد با کد ورود مشتری بالای QR متفاوت است.
+        </p>
+        <div style="display: flex; gap: 0.5rem; margin: 1rem 0; width: 100%; max-width: 280px;">
+          <input type="text" id="pairingCodeInput" maxlength="32" inputmode="numeric" autocomplete="one-time-code" dir="ltr" placeholder="123456"
+                 class="form-control" style="font-family: monospace; font-size: 1.5rem; text-align: center; letter-spacing: 0.2em; font-weight: bold; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-subtle); color: #fff; border-radius: var(--radius-md); padding: 0.4rem;">
+        </div>
+        <button id="submitPairingBtn" class="btn btn-primary" style="min-width: 140px; margin-bottom: 0.5rem;" data-i18n="pairBtn">تأیید و اتصال</button>
+        <div id="pairingErrorMsg" style="color: var(--color-danger); font-size: 0.85rem; display: none;"></div>
+      </div>
+    </main>
+
+    <!-- Bottom Controls -->
+    <footer class="camera-controls">
+      <div class="control-group">
+        <label for="cameraSelect" class="control-label" data-i18n="selectCamera">انتخاب دوربین:</label>
+        <select id="cameraSelect" class="form-control select-camera">
+          <option value="" data-i18n="defaultCamera">دوربین پیش‌فرض (پشت)</option>
+        </select>
+      </div>
+
+      <div class="control-actions">
+        <button id="toggleStreamBtn" class="btn btn-primary btn-stream">
+          <span class="btn-icon">⏹️</span>
+          <span id="toggleStreamText" data-i18n="pauseStream">توقف ارسال فریم</span>
+        </button>
+        <button id="flipCameraBtn" class="btn btn-outline" title="چرخش دوربین">
+          🔄 <span data-i18n="flipCamera">چرخش دوربین</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/config.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script src="/assets/js/rtc.js?v=1.4.1"></script>
+  <script src="/camera/app.js?v=1.4.1"></script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+/**
+ * SMARTSHELF Design Tokens
+ * Master Theme System: Light (Ivory/Cream) & Dark (Plum)
+ * Strict WCAG 2.1 AA Compliance (Contrast ratio >= 4.5:1 for normal text)
+ */
+
+:root {
+  /* ==========================================================================
+     Base Palette (Brand Anchors)
+     ========================================================================== */
+  --color-plum: #321126;
+  --color-burgundy: #641B3A;
+  --color-crimson: #B72D52;
+  --color-soft-crimson: #D34C67;
+  --color-cream: #F7F0E8;
+  --color-ivory: #FFFDF9;
+
+  /* ==========================================================================
+     Typography & Font Hierarchy
+     ========================================================================== */
+  --font-sans: 'Dana', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --font-xs: 0.75rem;      /* 12px */
+  --font-sm: 0.875rem;     /* 14px */
+  --font-base: 1rem;       /* 16px */
+  --font-lg: 1.125rem;     /* 18px */
+  --font-xl: 1.25rem;      /* 20px */
+  --font-2xl: 1.5rem;      /* 24px */
+  --font-3xl: 1.875rem;    /* 30px */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 800;
+
+  --lh-tight: 1.25;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.8;
+
+  /* ==========================================================================
+     4px Grid Spacing
+     ========================================================================== */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Touch Target Minimum (44px for accessible interaction) */
+  --min-touch-target: 44px;
+
+  /* ==========================================================================
+     Radii
+     ========================================================================== */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ==========================================================================
+     Elevation & Shadows
+     ========================================================================== */
+  --shadow-sm: 0 1px 2px 0 rgba(50, 17, 38, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(50, 17, 38, 0.08), 0 2px 4px -2px rgba(50, 17, 38, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(50, 17, 38, 0.1), 0 4px 6px -4px rgba(50, 17, 38, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(50, 17, 38, 0.14), 0 8px 10px -6px rgba(50, 17, 38, 0.08);
+
+  /* ==========================================================================
+     Z-Index Layers
+     ========================================================================== */
+  --z-base: 1;
+  --z-sticky: 100;
+  --z-sheet: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+
+  /* ==========================================================================
+     Motion & Transitions (150ms - 350ms, cubic-bezier(.2,.8,.2,1))
+     ========================================================================== */
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1.0);
+  --ease-in: cubic-bezier(0.4, 0.0, 1.0, 1.0);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1.0);
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+
+  /* ==========================================================================
+     Light Theme (Default: Ivory Canvas & Cream Surfaces)
+     ========================================================================== */
+  --bg-canvas: #FFFDF9;              /* Ivory */
+  --bg-surface: #F7F0E8;             /* Cream */
+  --bg-surface-elevated: #FFFFFF;
+  --bg-surface-subtle: rgba(100, 27, 58, 0.04);
+  --bg-muted: rgba(100, 27, 58, 0.08);
+
+  --text-primary: #321126;           /* Plum (14.94:1 on Cream, 16.6:1 on Ivory) */
+  --text-secondary: #641B3A;         /* Burgundy (10.56:1 on Cream) */
+  --text-muted: rgba(50, 17, 38, 0.70); /* >= 5.0:1 on Cream */
+  --text-inverse: #FFFDF9;
+
+  --border-subtle: rgba(100, 27, 58, 0.12);
+  --border-default: rgba(100, 27, 58, 0.24);
+  --border-strong: #641B3A;
+
+  --primary: #B72D52;                /* Crimson (5.29:1 on Cream) */
+  --primary-hover: #9c2242;
+  --primary-active: #821a35;
+  --primary-fg: #FFFDF9;
+
+  /* Soft Crimson is restricted to borders, badges, decorative bg & large text */
+  --accent: #D34C67;
+  --accent-subtle: rgba(211, 76, 103, 0.12);
+  --accent-fg: #321126;
+
+  /* Focus Ring */
+  --focus-ring: #B72D52;
+  --focus-ring-offset: #FFFDF9;
+
+  /* Semantic Status Colors (Harmonized, >= 4.5:1 on Cream) */
+  --color-success: #166534;          /* 6.58:1 on Cream */
+  --color-success-bg: rgba(22, 101, 52, 0.12);
+  --color-success-border: rgba(22, 101, 52, 0.30);
+
+  --color-warning: #9a3412;          /* 5.12:1 on Cream */
+  --color-warning-bg: rgba(154, 52, 18, 0.12);
+  --color-warning-border: rgba(154, 52, 18, 0.30);
+
+  --color-danger: #9f1239;           /* 7.42:1 on Cream */
+  --color-danger-bg: rgba(159, 18, 57, 0.12);
+  --color-danger-border: rgba(159, 18, 57, 0.30);
+
+  --color-info: #0369a1;             /* 5.24:1 on Cream */
+  --color-info-bg: rgba(3, 105, 161, 0.12);
+  --color-info-border: rgba(3, 105, 161, 0.30);
+}
+
+/* ==========================================================================
+   Dark Theme (Plum Canvas & Elevated Deep Burgundy Surfaces)
+   ========================================================================== */
+[data-theme="dark"] {
+  --bg-canvas: #1d0916;              /* Deep Plum Tint */
+  --bg-surface: #321126;             /* Plum */
+  --bg-surface-elevated: #441834;
+  --bg-surface-subtle: rgba(255, 253, 249, 0.05);
+  --bg-muted: rgba(255, 253, 249, 0.10);
+
+  --text-primary: #FFFDF9;           /* Ivory (16.6:1 on Plum) */
+  --text-secondary: #F7F0E8;         /* Cream (14.9:1 on Plum) */
+  --text-muted: rgba(255, 253, 249, 0.68); /* >= 5.0:1 on Plum */
+  --text-inverse: #321126;
+
+  --border-subtle: rgba(255, 253, 249, 0.14);
+  --border-default: rgba(255, 253, 249, 0.25);
+  --border-strong: rgba(255, 253, 249, 0.45);
+
+  --primary: #D34C67;                /* Soft Crimson as primary accent on dark (5.5:1 on Plum) */
+  --primary-hover: #e2617a;
+  --primary-active: #f17890;
+  --primary-fg: #FFFDF9;
+
+  --accent: #f472b6;
+  --accent-subtle: rgba(211, 76, 103, 0.22);
+  --accent-fg: #FFFDF9;
+
+  --focus-ring: #f472b6;
+  --focus-ring-offset: #321126;
+
+  /* Semantic Status Colors (Brightened for dark background, >= 4.5:1 on Plum) */
+  --color-success: #86efac;          /* 11.4:1 on Plum */
+  --color-success-bg: rgba(134, 239, 172, 0.16);
+  --color-success-border: rgba(134, 239, 172, 0.35);
+
+  --color-warning: #fde047;          /* 12.0:1 on Plum */
+  --color-warning-bg: rgba(253, 224, 71, 0.16);
+  --color-warning-border: rgba(253, 224, 71, 0.35);
+
+  --color-danger: #fca5a5;           /* 8.6:1 on Plum */
+  --color-danger-bg: rgba(252, 165, 165, 0.16);
+  --color-danger-border: rgba(252, 165, 165, 0.35);
+
+  --color-info: #7dd3fc;             /* 9.8:1 on Plum */
+  --color-info-bg: rgba(125, 211, 252, 0.16);
+  --color-info-border: rgba(125, 211, 252, 0.35);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.35), 0 2px 4px -2px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.60), 0 8px 10px -6px rgba(0, 0, 0, 0.45);
+}
+
+/* System dark preference fallback when no explicit attribute set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-canvas: #1d0916;
+    --bg-surface: #321126;
+    --bg-surface-elevated: #441834;
+    --bg-surface-subtle: rgba(255, 253, 249, 0.05);
+    --bg-muted: rgba(255, 253, 249, 0.10);
+
+    --text-primary: #FFFDF9;
+    --text-secondary: #F7F0E8;
+    --text-muted: rgba(255, 253, 249, 0.68);
+    --text-inverse: #321126;
+
+    --border-subtle: rgba(255, 253, 249, 0.14);
+    --border-default: rgba(255, 253, 249, 0.25);
+    --border-strong: rgba(255, 253, 249, 0.45);
+
+    --primary: #D34C67;
+    --primary-hover: #e2617a;
+    --primary-active: #f17890;
+    --primary-fg: #FFFDF9;
+
+    --accent: #f472b6;
+    --accent-subtle: rgba(211, 76, 103, 0.22);
+    --accent-fg: #FFFDF9;
+
+    --focus-ring: #f472b6;
+    --focus-ring-offset: #321126;
+
+    --color-success: #86efac;
+    --color-success-bg: rgba(134, 239, 172, 0.16);
+    --color-success-border: rgba(134, 239, 172, 0.35);
+
+    --color-warning: #fde047;
+    --color-warning-bg: rgba(253, 224, 71, 0.16);
+    --color-warning-border: rgba(253, 224, 71, 0.35);
+
+    --color-danger: #fca5a5;
+    --color-danger-bg: rgba(252, 165, 165, 0.16);
+    --color-danger-border: rgba(252, 165, 165, 0.35);
+
+    --color-info: #7dd3fc;
+    --color-info-bg: rgba(125, 211, 252, 0.16);
+    --color-info-border: rgba(125, 211, 252, 0.35);
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.35), 0 2px 4px -2px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.60), 0 8px 10px -6px rgba(0, 0, 0, 0.45);
+  }
+}

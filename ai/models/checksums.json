@@ -1,0 +1,12 @@
+[
+  {
+    "file": "yolo26n.onnx",
+    "size_bytes": 9941957,
+    "sha256": "2e947b787d9e787b93a16772a5f55b1d4d8c4d86f53146149c5d6a642442d6f7"
+  },
+  {
+    "file": "mobilenetv2-7.onnx",
+    "size_bytes": 14246826,
+    "sha256": "c1c513582d56afceff8516c73804e484c81c6a830712ab6d682253f4a3cd042f"
+  }
+]

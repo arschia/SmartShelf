@@ -1,0 +1,1 @@
+"""SMARTSHELF Backend Application Package."""

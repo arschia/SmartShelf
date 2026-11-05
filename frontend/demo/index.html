@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>دموی شبیه‌ساز قفسه مجازی | SMARTSHELF</title>
+
+  <!-- Design System & Tokens -->
+  <link rel="stylesheet" href="/assets/fonts/dana.css">
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/motion.css">
+
+  <style>
+    body {
+      background-color: var(--bg-canvas);
+      padding-block-end: 100px;
+    }
+
+    .demo-fixed-badge {
+      background-color: var(--color-plum);
+      color: #FFFDF9;
+      text-align: center;
+      padding: var(--space-2) var(--space-4);
+      font-size: var(--font-xs);
+      font-weight: var(--font-weight-bold);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    .live-store-banner {
+      background-color: var(--color-success-bg);
+      border-block-end: 1px solid var(--color-success-border);
+      color: var(--color-success);
+      padding: var(--space-2) var(--space-4);
+      font-size: var(--font-xs);
+      font-weight: var(--font-weight-bold);
+      text-align: center;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    .demo-shelf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-4);
+      margin-block: var(--space-4);
+    }
+
+    .slot-card {
+      background-color: var(--bg-surface);
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      cursor: pointer;
+      user-select: none;
+      transition: all var(--duration-fast) var(--ease-standard);
+      position: relative;
+    }
+
+    .slot-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .slot-card.absent {
+      opacity: 0.65;
+      border-style: dashed;
+      background-color: var(--bg-muted);
+    }
+
+    .slot-card.stabilizing {
+      border-color: var(--color-warning);
+      animation: productShake 0.4s infinite;
+    }
+
+    .slot-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: var(--font-xs);
+      font-weight: bold;
+      width: fit-content;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fixed Top Disclaimer Badge -->
+  <div class="demo-fixed-badge">
+    <span>🧪 شبیه‌ساز نمایشی — بدون دوربین واقعی</span>
+  </div>
+
+  <!-- Live Backend Notification Banner -->
+  <div id="liveStoreBanner" class="live-store-banner">
+    <span>✓ سرور و فروشگاه زنده در دسترس است!</span>
+    <a href="/admin/" style="color: var(--color-success); text-decoration: underline; margin-inline-start: var(--space-2);">
+      ورود به داشبورد ادمین &larr;
+    </a>
+  </div>
+
+  <!-- Header -->
+  <header style="background-color: var(--bg-surface); border-block-end: 1px solid var(--border-subtle); padding: var(--space-3) var(--space-4);">
+    <div class="container" style="display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: var(--space-2);">
+        <img src="/assets/img/logo.svg" alt="SMARTSHELF" style="height: 34px;">
+      </div>
+      <div style="display: flex; align-items: center; gap: var(--space-2);">
+        <button id="themeToggleBtn" class="btn btn-secondary btn-sm" type="button">🌓 تم</button>
+        <button id="dirToggleBtn" class="btn btn-secondary btn-sm" type="button">🌐 جهت</button>
+        <a href="/" class="btn btn-outline btn-sm">پرتال</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Simulator Container -->
+  <main class="container" style="margin-block-start: var(--space-4);">
+
+    <!-- Explanatory Card -->
+    <div class="card" style="background-color: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-4); margin-block-end: var(--space-6);">
+      <h1 style="font-size: var(--font-lg); margin-block-end: var(--space-1);">شبیه‌ساز قفسه هوشمند و سبد خرید زنده</h1>
+      <p style="color: var(--text-muted); font-size: var(--font-sm); margin-bottom: 0;">
+        روی هر محصول کلیک کنید تا عملیات <strong>برداشتن کالا</strong> شبیه‌سازی شود. پس از ۱٫۵ ثانیه پایداری سنسور، کالا به سبد خرید اضافه خواهد شد. با کلیک مجدد، کالا به قفسه بازگردانده می‌شود.
+      </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-6);">
+      
+      <!-- Virtual Shelf (3 Slots) -->
+      <div>
+        <h2 style="font-size: var(--font-base); display: flex; align-items: center; gap: var(--space-2);">
+          <span>🏷️ قفسه فیزیکی مجازی (۳ جایگاه)</span>
+        </h2>
+        <div id="shelfSlotsContainer" class="demo-shelf-grid">
+          <!-- Populated from demo-products.json -->
+        </div>
+      </div>
+
+      <!-- Simulated Customer Cart -->
+      <div>
+        <h2 style="font-size: var(--font-base); display: flex; align-items: center; justify-content: space-between;">
+          <span>🛒 سبد خرید مشتری شبیه‌سازی‌شده</span>
+          <span id="demoCartCountBadge" class="badge badge-neutral">۰ کالا</span>
+        </h2>
+
+        <!-- Empty Cart -->
+        <div id="demoCartEmpty" class="empty-state" style="background-color: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); margin-block-start: var(--space-4);">
+          <div class="empty-state-title" style="font-size: var(--font-base);">سبد خرید خالی است</div>
+          <div class="empty-state-desc" style="font-size: var(--font-xs);">روی یکی از اقلام قفسه در سمت راست کلیک کنید تا آن را بردارید.</div>
+        </div>
+
+        <!-- Cart Items List -->
+        <div id="demoCartItems" style="display: none; flex-direction: column; gap: var(--space-3); margin-block-start: var(--space-4);">
+          <!-- Cart items rendered here -->
+        </div>
+
+        <!-- Invoice Receipt Container (After checkout) -->
+        <div id="demoInvoiceContainer" style="display: none; margin-block-start: var(--space-4);" class="anim-ticket-rollout">
+          <!-- Ticket Receipt -->
+          <div class="ticket-receipt">
+            <div class="ticket-header">
+              <img src="/assets/img/logo-mark.svg" alt="SMARTSHELF" style="width: 36px; height: 36px; margin: 0 auto var(--space-2);">
+              <h3 style="margin-bottom: 2px;">رسید خرید آزمایشی</h3>
+              <span style="font-size: var(--font-xs); color: var(--text-muted);" id="demoInvoiceDate">--</span>
+            </div>
+            <div id="demoInvoiceLines"></div>
+            <hr class="ticket-divider">
+            <div class="ticket-total">
+              <span>جمع کل:</span>
+              <span id="demoInvoiceTotal">۰ تومان</span>
+            </div>
+            <div style="text-align: center; margin-block-start: var(--space-3);">
+              <button id="resetDemoBtn" class="btn btn-secondary btn-sm" type="button">شروع مجدد دمو</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Sticky Action Bar for Demo -->
+  <aside class="sticky-action-bar">
+    <div class="sticky-action-total">
+      <span class="label">جمع کل سبد:</span>
+      <span class="amount" id="demoGrandTotal">۰ تومان</span>
+    </div>
+    <button id="demoCheckoutBtn" class="btn btn-primary btn-lg" type="button" disabled>
+      💳 تسویه‌حساب و صدور فاکتور
+    </button>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="/config.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/ui.js"></script>
+
+  <script>
+    let products = [];
+    let slotStates = {}; // slotId -> { status: 'PRESENT' | 'ABSENT' | 'STABILIZING', product }
+    let cart = {}; // productId -> { product, quantity }
+
+    async function initDemo() {
+      // 1. Check live backend health
+      try {
+        const health = await SmartShelfApi.checkServerHealth();
+        if (health.online) {
+          document.getElementById('liveStoreBanner').style.display = 'flex';
+        }
+      } catch (e) {}
+
+      // 2. Load demo products
+      try {
+        const res = await fetch('/demo/demo-products.json');
+        products = await res.json();
+      } catch (err) {
+        // Fallback default
+        products = [
+          { id: 1, slot_id: 1, name: "آبمیوه طبیعی پرتقال سن‌ایچ ۱ لیتری", price: 45000, image_path: "/assets/img/placeholder.png" },
+          { id: 2, slot_id: 2, name: "بیسکویت سبوس‌دار ساقه طلایی مینو", price: 25000, image_path: "/assets/img/placeholder.png" },
+          { id: 3, slot_id: 3, name: "شیر پاستوریزه کم‌چرب دامداران ۱ لیتری", price: 32000, image_path: "/assets/img/placeholder.png" }
+        ];
+      }
+
+      // Initialize slot states
+      products.forEach(p => {
+        slotStates[p.slot_id] = {
+          status: 'PRESENT',
+          product: p
+        };
+      });
+
+      renderShelf();
+      renderDemoCart();
+    }
+
+    function renderShelf() {
+      const container = document.getElementById('shelfSlotsContainer');
+      container.innerHTML = products.map(p => {
+        const slot = slotStates[p.slot_id];
+        const isPresent = slot.status === 'PRESENT';
+        const isStab = slot.status === 'STABILIZING';
+
+        let badgeClass = isPresent ? 'badge-success' : 'badge-neutral';
+        let statusText = isPresent ? 'موجود (روی قفسه)' : 'برداشته‌شده (خالی)';
+        if (isStab) {
+          badgeClass = 'badge-warning';
+          statusText = 'در حال پردازش سنسور...';
+        }
+
+        return `
+          <div class="slot-card ${!isPresent ? 'absent' : ''} ${isStab ? 'stabilizing' : ''}" 
+               onclick="toggleSlot(${p.slot_id})" 
+               title="برای برداشتن یا برگرداندن کلیک کنید">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: bold; font-size: var(--font-xs); color: var(--text-muted);">جایگاه شماره ${SmartShelfFormat.toPersianDigits(p.slot_id)}</span>
+              <span class="badge ${badgeClass}">${statusText}</span>
+            </div>
+            <img src="${p.image_path}" alt="${p.name}" style="height: 90px; object-fit: contain; margin: 0 auto;">
+            <div style="font-weight: bold; font-size: var(--font-sm);">${p.name}</div>
+            <div style="font-weight: bold; color: var(--primary); font-size: var(--font-sm);">${SmartShelfFormat.formatToman(p.price)}</div>
+            <button class="btn ${isPresent ? 'btn-primary' : 'btn-outline'} btn-sm" type="button" style="width: 100%;">
+              ${isPresent ? '👆 کلیک برای برداشتن' : '↩️ کلیک برای برگرداندن'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleSlot(slotId) {
+      const slot = slotStates[slotId];
+      if (!slot || slot.status === 'STABILIZING') return;
+
+      const wasPresent = slot.status === 'PRESENT';
+      slot.status = 'STABILIZING';
+      renderShelf();
+      SmartShelfUI.triggerHaptic(15);
+
+      // Simulate STABLE_SECONDS delay (~1.2s)
+      setTimeout(() => {
+        if (wasPresent) {
+          // Item picked!
+          slot.status = 'ABSENT';
+          addToCart(slot.product);
+          SmartShelfUI.showToast({
+            message: `محصول برداشته شد: ${slot.product.name}`,
+            type: 'success',
+            undoText: 'بازگردانی',
+            onUndo: () => toggleSlot(slotId)
+          });
+        } else {
+          // Item returned!
+          slot.status = 'PRESENT';
+          removeFromCart(slot.product);
+          SmartShelfUI.showToast({
+            message: `محصول بازگردانده شد: ${slot.product.name}`,
+            type: 'warning'
+          });
+        }
+        renderShelf();
+        renderDemoCart();
+      }, 1200);
+    }
+
+    function addToCart(product) {
+      if (cart[product.id]) {
+        cart[product.id].quantity += 1;
+      } else {
+        cart[product.id] = { product: product, quantity: 1 };
+      }
+      SmartShelfUI.triggerHaptic([20, 30]);
+    }
+
+    function removeFromCart(product) {
+      if (cart[product.id]) {
+        cart[product.id].quantity -= 1;
+        if (cart[product.id].quantity <= 0) {
+          delete cart[product.id];
+        }
+      }
+      SmartShelfUI.triggerHaptic(15);
+    }
+
+    function renderDemoCart() {
+      const emptyEl = document.getElementById('demoCartEmpty');
+      const itemsEl = document.getElementById('demoCartItems');
+      const countBadge = document.getElementById('demoCartCountBadge');
+      const grandTotalEl = document.getElementById('demoGrandTotal');
+      const checkoutBtn = document.getElementById('demoCheckoutBtn');
+
+      const items = Object.values(cart);
+      const totalQty = items.reduce((sum, item) => sum + item.quantity, 0);
+      const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.product.price), 0);
+
+      countBadge.textContent = `${SmartShelfFormat.toPersianDigits(totalQty)} کالا`;
+      grandTotalEl.textContent = SmartShelfFormat.formatToman(totalAmount);
+      grandTotalEl.classList.remove('anim-count-bump');
+      void grandTotalEl.offsetWidth;
+      grandTotalEl.classList.add('anim-count-bump');
+
+      checkoutBtn.disabled = totalQty === 0;
+
+      if (totalQty === 0) {
+        emptyEl.style.display = 'block';
+        itemsEl.style.display = 'none';
+        itemsEl.innerHTML = '';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      itemsEl.style.display = 'flex';
+
+      itemsEl.innerHTML = items.map(item => `
+        <div class="product-card anim-cart-add">
+          <img src="${item.product.image_path}" class="product-card-img" style="width: 64px; height: 64px;">
+          <div class="product-card-body">
+            <span class="product-card-title">${item.product.name}</span>
+            <span class="product-card-price">${SmartShelfFormat.formatToman(item.product.price)}</span>
+            <div style="display: flex; justify-content: space-between; font-size: var(--font-xs); color: var(--text-muted); margin-block-start: 4px;">
+              <span>تعداد: <strong>${SmartShelfFormat.toPersianDigits(item.quantity)}</strong></span>
+              <span>جمع: <strong style="color: var(--primary);">${SmartShelfFormat.formatToman(item.quantity * item.product.price)}</strong></span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('demoCheckoutBtn').addEventListener('click', () => {
+      const items = Object.values(cart);
+      if (items.length === 0) return;
+
+      const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.product.price), 0);
+      document.getElementById('demoInvoiceDate').textContent = SmartShelfFormat.formatJalali(new Date());
+      document.getElementById('demoInvoiceTotal').textContent = SmartShelfFormat.formatToman(totalAmount);
+
+      document.getElementById('demoInvoiceLines').innerHTML = items.map(item => `
+        <div class="ticket-line-item">
+          <span>${item.product.name} (${SmartShelfFormat.toPersianDigits(item.quantity)}×)</span>
+          <strong>${SmartShelfFormat.formatToman(item.quantity * item.product.price)}</strong>
+        </div>
+      `).join('');
+
+      document.getElementById('demoInvoiceContainer').style.display = 'block';
+      document.getElementById('demoCartItems').style.display = 'none';
+      document.getElementById('demoCheckoutBtn').disabled = true;
+      SmartShelfUI.triggerHaptic([30, 80, 40]);
+    });
+
+    document.getElementById('resetDemoBtn').addEventListener('click', () => {
+      cart = {};
+      products.forEach(p => {
+        slotStates[p.slot_id] = { status: 'PRESENT', product: p };
+      });
+      document.getElementById('demoInvoiceContainer').style.display = 'none';
+      renderShelf();
+      renderDemoCart();
+    });
+
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      SmartShelfUI.toggleTheme();
+    });
+    document.getElementById('dirToggleBtn').addEventListener('click', () => {
+      SmartShelfUI.toggleDirection();
+    });
+
+    document.addEventListener('DOMContentLoaded', initDemo);
+  </script>
+</body>
+</html>

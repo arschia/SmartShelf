@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>آزمایشگاه بطری | SmartShelf</title>
+  <link rel="stylesheet" href="/assets/fonts/dana.css">
+  <link rel="stylesheet" href="/bottle.css?v=1.2.1">
+</head>
+<body>
+<header><div><small>SMARTSHELF · VISION LAB</small><h1>تشخیص بطری در صحنه‌های مختلف</h1><p>آزمایش تشخیص شیء و ساخت مجموعه‌دادهٔ محصول</p></div><a href="/admin/">بازگشت به پنل ←</a></header>
+<main>
+  <section id="loginCard" class="card" hidden>
+    <h2>ورود مدیر</h2><form id="loginForm"><label for="pin">پین پنل</label><input id="pin" type="password" autocomplete="current-password" maxlength="128" required><button>ورود</button></form>
+  </section>
+  <p id="message" role="status" aria-live="polite"></p>
+  <section class="card status"><strong id="modelStatus">در حال بررسی مدل…</strong><p id="modelNote">مدل عمومی، نام برند و طعم را تأیید نمی‌کند. این صفحه خرید یا برداشت ثبت نمی‌کند.</p></section>
+  <div class="layout">
+    <section class="card">
+      <h2>۱. تصویر و تشخیص</h2>
+      <div class="controls"><label class="file">انتخاب عکس<input id="photo" type="file" accept="image/*"></label><button id="camera">دوربین این دستگاه</button><button id="snapshot" disabled>گرفتن عکس</button></div>
+      <video id="video" autoplay playsinline muted hidden></video>
+      <div id="stage"><canvas id="canvas" width="960" height="600" aria-label="تصویر و کادرهای بطری"></canvas><p id="placeholder">عکس بطری را انتخاب کنید یا دوربین را باز کنید.</p></div>
+      <div class="controls"><button id="detect" disabled>تشخیص این عکس</button></div>
+      <label for="liveSource">دوربین آزمایش زنده</label>
+      <select id="liveSource"><option value="local">دوربین همین دستگاه — بدون جفت‌کردن تبلت</option><option value="tablet">دوربین تبلت متصل از صفحهٔ دوربین</option></select>
+      <p id="liveSourceHint" class="hint">اگر این صفحه را روی تبلت باز کرده‌اید، دوربین همین تبلت استفاده می‌شود. اجازهٔ دسترسی به دوربین را تأیید کنید.</p>
+      <div class="controls"><button id="live">شروع آزمایش زنده</button><button id="stop" hidden>توقف آزمایش</button></div>
+      <p id="liveStatus" role="status" aria-live="polite">آزمایش زنده متوقف است.</p>
+      <label for="threshold">حداقل امتیاز تشخیص <output id="thresholdValue">۰٫۳۵</output></label><input id="threshold" type="range" min="0.1" max="0.9" value="0.35" step="0.05">
+      <p id="result">برای تشخیص بطری، مرجع قفسهٔ خالی لازم نیست.</p>
+    </section>
+    <section class="card">
+      <h2>۲. نمونهٔ آموزش اختصاصی</h2>
+      <p>این بخش برای آموزش بعدی مدل است. کادر دستی یعنی شما محل و نام بطری را مشخص می‌کنید؛ نتیجهٔ تشخیص هوش مصنوعی نیست.</p>
+      <label class="check"><input id="annotationMode" type="checkbox">فعال‌کردن کادرکشی دستی برای آموزش</label>
+      <label for="environment">نام محیط / کلاس</label><input id="environment" placeholder="مثلاً کلاس ۱۰۱" maxlength="80">
+      <label for="classId">برچسب کادر بعدی</label><select id="classId"><option value="0">دلستر هی‌جو هلو</option><option value="1">بطری دیگر / طعم دیگر</option></select>
+      <p class="hint">پس از فعال‌کردن کادرکشی، دور هر بطری کادر بکشید و برچسب درست را انتخاب کنید. سبز: برچسب دستی شما؛ زرد: خروجی مدل. عبارت «تأیید» فقط با تیک بررسی و ثبت نمونه اعمال می‌شود.</p>
+      <div class="controls"><button id="clearBoxes">پاک‌کردن کادرها</button></div><ol id="boxes"></ol>
+      <label class="check"><input id="negative" type="checkbox">در این تصویر هیچ بطری‌ای نیست</label>
+      <label class="check"><input id="reviewed" type="checkbox">تمام کادرها و برچسب‌های این عکس را بررسی کردم</label>
+      <button id="save" disabled>ثبت نمونهٔ بررسی‌شده</button>
+      <hr><p id="datasetStatus">هنوز نمونه‌ای ثبت نشده است.</p><button id="export">دانلود دادهٔ آموزش</button>
+      <p class="hint">کل هر محیط فقط در یکی از بخش‌های آموزش، اعتبارسنجی یا آزمون قرار می‌گیرد. حداقل سه محیط لازم است؛ برای کیفیت بهتر، محیط‌های بیشتری ثبت کنید.</p>
+    </section>
+  </div>
+</main>
+<script src="/config.js"></script><script src="/assets/js/api.js"></script><script src="/assets/js/format.js"></script><script src="/bottle.js?v=1.2.1"></script>
+</body></html>

@@ -1,0 +1,27 @@
+# Secrets, data and local state must not enter the container build context.
+.env
+.env.*
+!.env.example
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.bak
+*.pem
+*.key
+certs/
+.git/
+.vercel/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+frontend/static/uploads/
+backend/data/
+backend/uploads/
+*.log
+
+data/bottle_dataset/
+ai/runs/

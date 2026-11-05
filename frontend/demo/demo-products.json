@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "slot_id": 1,
+    "name": "آبمیوه طبیعی پرتقال سن‌ایچ ۱ لیتری",
+    "sku": "BEV-SAN-01",
+    "price": 45000,
+    "image_path": "/assets/img/placeholder.png"
+  },
+  {
+    "id": 2,
+    "slot_id": 2,
+    "name": "بیسکویت سبوس‌دار ساقه طلایی مینو",
+    "sku": "SNK-SAG-02",
+    "price": 25000,
+    "image_path": "/assets/img/placeholder.png"
+  },
+  {
+    "id": 3,
+    "slot_id": 3,
+    "name": "شیر پاستوریزه کم‌چرب دامداران ۱ لیتری",
+    "sku": "DAI-MILK-03",
+    "price": 32000,
+    "image_path": "/assets/img/placeholder.png"
+  }
+]

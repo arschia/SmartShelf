@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" width="240" height="48" fill="none">
+  <defs>
+    <linearGradient id="logoShelfGrad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#B72D52"/>
+      <stop offset="100%" stop-color="#641B3A"/>
+    </linearGradient>
+  </defs>
+  <!-- Mark icon -->
+  <g transform="translate(0, 0)">
+    <rect x="4" y="6" width="36" height="36" rx="9" fill="url(#logoShelfGrad)" />
+    <path d="M10 26H34" stroke="#FFFDF9" stroke-width="2" stroke-linecap="round" opacity="0.4" />
+    <path d="M14 22L20 28L30 16" stroke="#FFFDF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="22" cy="12" r="2" fill="#FFFDF9" opacity="0.9" />
+  </g>
+  <!-- Brand text -->
+  <text x="50" y="27" font-family="'Dana', system-ui, -apple-system, sans-serif" font-size="20" font-weight="800" fill="currentColor" letter-spacing="1">SMARTSHELF</text>
+  <text x="52" y="40" font-family="'Dana', system-ui, -apple-system, sans-serif" font-size="10" font-weight="500" fill="currentColor" opacity="0.75">فروشگاه هوشمند خودکار</text>
+</svg>

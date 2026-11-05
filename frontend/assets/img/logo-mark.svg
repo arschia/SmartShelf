@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <defs>
+    <linearGradient id="shelfGrad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#B72D52"/>
+      <stop offset="100%" stop-color="#641B3A"/>
+    </linearGradient>
+    <linearGradient id="checkGrad" x1="16" y1="16" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFDF9"/>
+      <stop offset="100%" stop-color="#F7F0E8"/>
+    </linearGradient>
+  </defs>
+  <!-- Base smart shelf structure -->
+  <rect x="6" y="8" width="36" height="32" rx="8" fill="url(#shelfGrad)" />
+  <!-- Shelf horizontal tier -->
+  <path d="M12 28H36" stroke="#FFFDF9" stroke-width="2.5" stroke-linecap="round" opacity="0.4" />
+  <!-- Smart sensory / verification checkmark -->
+  <path d="M16 23L22 29L33 17" stroke="url(#checkGrad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Top active sensor dot -->
+  <circle cx="24" cy="13" r="2" fill="#FFFDF9" opacity="0.9" />
+</svg>

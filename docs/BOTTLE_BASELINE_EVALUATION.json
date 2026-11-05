@@ -1,0 +1,797 @@
+[
+  {
+    "file": "photo_10_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 76.61,
+    "detections": [
+      {
+        "box": [
+          0.42250877618789673,
+          0.1689656674861908,
+          0.6424179077148438,
+          0.7081012725830078
+        ],
+        "confidence": 0.9073,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_11_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 53.76,
+    "detections": [
+      {
+        "box": [
+          0.4260684847831726,
+          0.09709880501031876,
+          0.6756647229194641,
+          0.7163615226745605
+        ],
+        "confidence": 0.9071,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_12_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 42.04,
+    "detections": [
+      {
+        "box": [
+          0.4961204528808594,
+          0.0026844025123864412,
+          0.7112357020378113,
+          0.9204859733581543
+        ],
+        "confidence": 0.8247,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_13_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 41.24,
+    "detections": [
+      {
+        "box": [
+          0.5123885273933411,
+          0.21031227707862854,
+          0.6371721029281616,
+          0.9338275194168091
+        ],
+        "confidence": 0.939,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_14_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 42.0,
+    "detections": [
+      {
+        "box": [
+          0.4487217366695404,
+          0.18910999596118927,
+          0.6551896333694458,
+          0.6489737033843994
+        ],
+        "confidence": 0.9157,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_15_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 41.88,
+    "detections": [
+      {
+        "box": [
+          0.36143162846565247,
+          0.20536485314369202,
+          0.5713602304458618,
+          0.7012507915496826
+        ],
+        "confidence": 0.9449,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_16_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 42.28,
+    "detections": [
+      {
+        "box": [
+          0.5079923868179321,
+          0.0031657028011977673,
+          0.6843841075897217,
+          0.7857138514518738
+        ],
+        "confidence": 0.896,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_17_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 41.1,
+    "detections": [
+      {
+        "box": [
+          0.4944928288459778,
+          0.07688076049089432,
+          0.6522528529167175,
+          0.929105281829834
+        ],
+        "confidence": 0.9411,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_18_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 40.71,
+    "detections": [
+      {
+        "box": [
+          0.4578707814216614,
+          0.0008659744053147733,
+          0.5870860815048218,
+          0.7033947706222534
+        ],
+        "confidence": 0.9306,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_19_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 55.09,
+    "detections": [
+      {
+        "box": [
+          0.4667544364929199,
+          0.007894210517406464,
+          0.5845450758934021,
+          0.4097054898738861
+        ],
+        "confidence": 0.5123,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_1_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 67.97,
+    "detections": [
+      {
+        "box": [
+          0.4415517747402191,
+          0.0038780211471021175,
+          0.645469069480896,
+          0.7067040801048279
+        ],
+        "confidence": 0.8261,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_20_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 58.84,
+    "detections": [
+      {
+        "box": [
+          0.4700619578361511,
+          0.0029429434798657894,
+          0.5987407565116882,
+          0.6850555539131165
+        ],
+        "confidence": 0.9113,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_21_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 40.83,
+    "detections": [
+      {
+        "box": [
+          0.4774928092956543,
+          0.005728111602365971,
+          0.5998465418815613,
+          0.6977238655090332
+        ],
+        "confidence": 0.9483,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_22_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 40.87,
+    "detections": [
+      {
+        "box": [
+          0.491335928440094,
+          0.004829711746424437,
+          0.617397129535675,
+          0.7025167942047119
+        ],
+        "confidence": 0.9386,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_23_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 42.92,
+    "detections": [
+      {
+        "box": [
+          0.47084012627601624,
+          0.008287429809570312,
+          0.5891326069831848,
+          0.7480647563934326
+        ],
+        "confidence": 0.9332,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_24_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 40.34,
+    "detections": [
+      {
+        "box": [
+          0.49104422330856323,
+          0.05269531533122063,
+          0.6049000024795532,
+          0.7506096363067627
+        ],
+        "confidence": 0.9488,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_25_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 40.06,
+    "detections": [
+      {
+        "box": [
+          0.41504034399986267,
+          0.04008850082755089,
+          0.5217316746711731,
+          0.6823483109474182
+        ],
+        "confidence": 0.7997,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_26_2026-11-03_10-45-20.jpg",
+    "bottles": 0,
+    "ms": 39.91,
+    "detections": []
+  },
+  {
+    "file": "photo_27_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 39.58,
+    "detections": [
+      {
+        "box": [
+          0.46871405839920044,
+          0.18552954494953156,
+          0.6445890665054321,
+          0.6148942708969116
+        ],
+        "confidence": 0.9568,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_28_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 43.08,
+    "detections": [
+      {
+        "box": [
+          0.45366334915161133,
+          0.08314887434244156,
+          0.6390988230705261,
+          0.9516886472702026
+        ],
+        "confidence": 0.8876,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_29_2026-11-03_10-45-21.jpg",
+    "bottles": 0,
+    "ms": 42.26,
+    "detections": []
+  },
+  {
+    "file": "photo_2_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 59.48,
+    "detections": [
+      {
+        "box": [
+          0.3999544382095337,
+          0.14176562428474426,
+          0.6525181531906128,
+          0.7608985900878906
+        ],
+        "confidence": 0.9521,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_30_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 42.21,
+    "detections": [
+      {
+        "box": [
+          0.4709755480289459,
+          0.005153102800250053,
+          0.6081339716911316,
+          0.7700315713882446
+        ],
+        "confidence": 0.906,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_31_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 43.03,
+    "detections": [
+      {
+        "box": [
+          0.2444096952676773,
+          0.09479735046625137,
+          0.6155802011489868,
+          0.7410508990287781
+        ],
+        "confidence": 0.91,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_32_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 68.02,
+    "detections": [
+      {
+        "box": [
+          0.3183988034725189,
+          0.16848132014274597,
+          0.631372332572937,
+          0.7963584065437317
+        ],
+        "confidence": 0.9243,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_33_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 56.64,
+    "detections": [
+      {
+        "box": [
+          0.2529464662075043,
+          0.1414508819580078,
+          0.578079342842102,
+          0.7905322313308716
+        ],
+        "confidence": 0.9417,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_34_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 40.93,
+    "detections": [
+      {
+        "box": [
+          0.3118085265159607,
+          0.15259024500846863,
+          0.626230776309967,
+          0.7615950703620911
+        ],
+        "confidence": 0.9302,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_35_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 60.25,
+    "detections": [
+      {
+        "box": [
+          0.3465309143066406,
+          0.1389075517654419,
+          0.6657514572143555,
+          0.7708191275596619
+        ],
+        "confidence": 0.931,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_36_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 62.6,
+    "detections": [
+      {
+        "box": [
+          0.3188188076019287,
+          0.11633928120136261,
+          0.6432827115058899,
+          0.770760178565979
+        ],
+        "confidence": 0.9352,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_37_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 62.67,
+    "detections": [
+      {
+        "box": [
+          0.47299590706825256,
+          0.0031567763071507215,
+          0.6106940507888794,
+          0.6781889200210571
+        ],
+        "confidence": 0.9227,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_38_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 67.64,
+    "detections": [
+      {
+        "box": [
+          0.43042421340942383,
+          0.002751426538452506,
+          0.6469963788986206,
+          0.9326532483100891
+        ],
+        "confidence": 0.7102,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_39_2026-11-03_10-45-21.jpg",
+    "bottles": 0,
+    "ms": 64.59,
+    "detections": []
+  },
+  {
+    "file": "photo_3_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 66.85,
+    "detections": [
+      {
+        "box": [
+          0.3898964524269104,
+          0.11136035621166229,
+          0.6563424468040466,
+          0.7753797769546509
+        ],
+        "confidence": 0.9406,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_40_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 93.41,
+    "detections": [
+      {
+        "box": [
+          0.49022015929222107,
+          0.00477741239592433,
+          0.621130108833313,
+          0.8076218962669373
+        ],
+        "confidence": 0.9329,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_41_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 72.87,
+    "detections": [
+      {
+        "box": [
+          0.4216233193874359,
+          0.2507725656032562,
+          0.6362598538398743,
+          0.7732638716697693
+        ],
+        "confidence": 0.9541,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_42_2026-11-03_10-45-21.jpg",
+    "bottles": 1,
+    "ms": 50.0,
+    "detections": [
+      {
+        "box": [
+          0.47324395179748535,
+          0.003987121395766735,
+          0.5826488733291626,
+          0.6511794924736023
+        ],
+        "confidence": 0.9285,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_4_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 46.15,
+    "detections": [
+      {
+        "box": [
+          0.4920106530189514,
+          0.11205534636974335,
+          0.7688018083572388,
+          0.7914508581161499
+        ],
+        "confidence": 0.9254,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_5_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 41.72,
+    "detections": [
+      {
+        "box": [
+          0.47214460372924805,
+          0.2722007632255554,
+          0.7060077786445618,
+          0.8184099197387695
+        ],
+        "confidence": 0.9525,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_6_2026-11-03_10-45-20.jpg",
+    "bottles": 3,
+    "ms": 42.68,
+    "detections": [
+      {
+        "box": [
+          0.5248669385910034,
+          0.1059994250535965,
+          0.8199547529220581,
+          0.8230676651000977
+        ],
+        "confidence": 0.9413,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      },
+      {
+        "box": [
+          0.4439484179019928,
+          0.28510674834251404,
+          0.49189338088035583,
+          0.34604448080062866
+        ],
+        "confidence": 0.5332,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      },
+      {
+        "box": [
+          0.126169353723526,
+          0.27963462471961975,
+          0.1853097826242447,
+          0.3719725012779236
+        ],
+        "confidence": 0.3626,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_7_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 42.52,
+    "detections": [
+      {
+        "box": [
+          0.4147112965583801,
+          0.23963403701782227,
+          0.6390446424484253,
+          0.770538866519928
+        ],
+        "confidence": 0.9249,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_8_2026-11-03_10-45-20.jpg",
+    "bottles": 2,
+    "ms": 48.54,
+    "detections": [
+      {
+        "box": [
+          0.4313929080963135,
+          0.02967390976846218,
+          0.7001566886901855,
+          0.7014180421829224
+        ],
+        "confidence": 0.913,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      },
+      {
+        "box": [
+          0.9003794193267822,
+          0.2595347762107849,
+          0.9617161154747009,
+          0.3697958290576935
+        ],
+        "confidence": 0.4634,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  },
+  {
+    "file": "photo_9_2026-11-03_10-45-20.jpg",
+    "bottles": 1,
+    "ms": 43.34,
+    "detections": [
+      {
+        "box": [
+          0.45082807540893555,
+          0.25272732973098755,
+          0.6161755323410034,
+          0.6024908423423767
+        ],
+        "confidence": 0.8923,
+        "class_name": "bottle",
+        "identity": "UNKNOWN",
+        "target": null
+      }
+    ]
+  }
+]

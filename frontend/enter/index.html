@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>اعتبارسنجی ورود به فروشگاه | SMARTSHELF</title>
+
+  <!-- Design System & Tokens -->
+  <link rel="stylesheet" href="/assets/fonts/dana.css">
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/motion.css">
+
+  <style>
+    body {
+      background-color: var(--bg-canvas);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+    }
+    .enter-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6) var(--space-5);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: var(--shadow-xl);
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid var(--border-subtle);
+      border-top-color: var(--primary);
+      border-radius: var(--radius-full);
+      animation: spin 0.8s linear infinite;
+      margin: var(--space-4) auto;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="enter-card anim-page-fade">
+    <div style="margin-block-end: var(--space-4);">
+      <img src="/assets/img/logo.svg" alt="SMARTSHELF" style="height: 42px; margin: 0 auto;">
+    </div>
+
+    <!-- State 1: Validating -->
+    <div id="stateValidating">
+      <div class="spinner"></div>
+      <h1 style="font-size: var(--font-lg); margin-block-end: var(--space-2);">در حال بررسی توکن ورود...</h1>
+      <p style="color: var(--text-muted); font-size: var(--font-sm);">
+        لطفاً چند لحظه شکیبا باشید، نشست خرید هوشمند در حال ایجاد است.
+      </p>
+    </div>
+
+    <!-- State 2: Success -->
+    <div id="stateSuccess" style="display: none;">
+      <div style="width: 56px; height: 56px; margin: 0 auto var(--space-3);">
+        <svg viewBox="0 0 48 48" fill="none" style="width: 100%; height: 100%;">
+          <circle cx="24" cy="24" r="22" stroke="var(--color-success)" stroke-width="3" fill="var(--color-success-bg)"/>
+          <path class="anim-checkmark-draw" d="M14 24L21 31L34 17" stroke="var(--color-success)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 style="font-size: var(--font-lg); margin-block-end: var(--space-2); color: var(--color-success);">
+        ورود تأیید شد!
+      </h2>
+      <p style="color: var(--text-muted); font-size: var(--font-sm);">
+        در حال انتقال خودکار به سبد خرید شخصی...
+      </p>
+    </div>
+
+    <!-- State 3: Store Occupied (409) -->
+    <div id="stateOccupied" style="display: none;">
+      <div style="font-size: 3rem; margin-block-end: var(--space-2);">⏳</div>
+      <span class="badge badge-warning" style="margin-block-end: var(--space-2);">فروشگاه اشغال است</span>
+      <h2 style="font-size: var(--font-lg); margin-block-end: var(--space-2);">مشتری دیگری در فروشگاه حضور دارد</h2>
+      <p style="color: var(--text-muted); font-size: var(--font-sm);">
+        به دلیل حفظ تجربه خرید اختصاصی، لطفاً تا خروج مشتری قبلی چند لحظه منتظر بمانید و سپس مجدداً QR مانیتور را اسکن فرمایید.
+      </p>
+      <a href="/" class="btn btn-secondary" style="margin-block-start: var(--space-4);">بازگشت به پرتال</a>
+    </div>
+
+    <!-- State 4: Store Closed (403) -->
+    <div id="stateClosed" style="display: none;">
+      <div style="font-size: 3rem; margin-block-end: var(--space-2);">🔒</div>
+      <span class="badge badge-danger" style="margin-block-end: var(--space-2);">فروشگاه بسته است</span>
+      <h2 style="font-size: var(--font-lg); margin-block-end: var(--space-2);">پذیرش مشتری غیرفعال است</h2>
+      <p style="color: var(--text-muted); font-size: var(--font-sm);">
+        فروشگاه در حال حاضر توسط مدیریت بسته اعلام شده است. لطفاً بعداً مراجعه فرمایید.
+      </p>
+      <a href="/" class="btn btn-secondary" style="margin-block-start: var(--space-4);">بازگشت به پرتال</a>
+    </div>
+
+    <!-- State 5: Token Expired or Invalid (410 / 400) -->
+    <div id="stateExpired" style="display: none;">
+      <div style="font-size: 3rem; margin-block-end: var(--space-2);">⌛</div>
+      <span class="badge badge-neutral" style="margin-block-end: var(--space-2);">توکن منقضی یا نامعتبر</span>
+      <h2 style="font-size: var(--font-lg); margin-block-end: var(--space-2);">کد QR منقضی شده است</h2>
+      <p style="color: var(--text-muted); font-size: var(--font-sm);">
+        کدهای ورود به دلایل امنیتی هر ۳۰ ثانیه تازه‌سازی می‌شوند. لطفاً کد جدید نمایش‌داده‌شده روی مانیتور را اسکن کنید.
+      </p>
+      <a href="/enter/" class="btn btn-primary" style="margin-block-start: var(--space-4);">تلاش مجدد یا ورود با کد</a>
+    </div>
+
+    <!-- State 6: Backend unavailable (never create a simulated session) -->
+    <div id="stateBackendUnavailable" style="display: none;">
+      <div style="font-size:3rem;margin-block-end:var(--space-2);">📡</div>
+      <span class="badge badge-warning" style="margin-block-end:var(--space-2);">ارتباط با سرور برقرار نیست</span>
+      <h2 style="font-size:var(--font-lg);margin-block-end:var(--space-2);">ورود فعلاً امکان‌پذیر نیست</h2>
+      <p style="color:var(--text-muted);font-size:var(--font-sm);">
+        نشست آزمایشی یا فاکتور ساختگی ایجاد نشده است. لطفاً اتصال سرور فروشگاه را بررسی کنید و دوباره تلاش کنید.
+      </p>
+      <button id="retryEnterBtn" class="btn btn-primary" style="margin-block-start:var(--space-4);">تلاش مجدد</button>
+    </div>
+
+    <!-- State 7: Customer Portal Gateway (Accessed without token) -->
+    <div id="stateGateway" style="display: none;">
+      <div style="font-size: 2.8rem; margin-block-end: var(--space-2);">🛒</div>
+      <h2 style="font-size: var(--font-lg); margin-block-end: var(--space-2); color: var(--text-primary);">
+        ورود به فروشگاه هوشمند
+      </h2>
+      <p style="color: var(--text-muted); font-size: var(--font-sm); margin-block-end: var(--space-4);">
+        QR پنل فروشگاه را اسکن کنید یا کد شش‌رقمی بالای آن را وارد کنید:
+      </p>
+
+      <button id="scanQrBtn" type="button" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:12px">اسکن QR با دوربین</button>
+      <video id="entryQrVideo" autoplay playsinline muted hidden style="width:100%;max-height:300px;border-radius:12px"></video>
+      <button id="stopQrScanBtn" type="button" class="btn btn-secondary" hidden>توقف اسکن</button>
+      <p id="qrScanStatus" role="status" aria-live="polite" style="margin:10px 0"></p>
+      <form id="manualTokenForm" style="margin-block-end: var(--space-4);">
+        <input type="text" id="manualTokenInput" class="form-control" placeholder="کد ورود، مثلاً ۱۲۳۴۵۶" inputmode="numeric" autocomplete="one-time-code" maxlength="128" dir="ltr" style="text-align: center; font-size: var(--font-base); letter-spacing: 2px; margin-block-end: var(--space-3);" required>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          تأیید و ورود به سبد خرید
+        </button>
+      </form>
+
+      <div style="border-top: 1px solid var(--border-subtle); padding-top: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2);">
+        <a href="/" class="btn btn-ghost" style="font-size: var(--font-xs); justify-content: center;">
+          بازگشت به صفحه اصلی
+        </a>
+      </div>
+    </div>
+    <button id="changeEntryCodeBtn" type="button" class="btn btn-secondary" hidden style="margin-top:14px;width:100%;justify-content:center">اسکن QR یا واردکردن کد جدید</button>
+  </div>
+
+  <script src="/config.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script src="/assets/js/jsQR-1.4.0.js"></script>
+  <script src="/enter/qr.js?v=1.3.1"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      let token = urlParams.get("token");
+
+      // Strip token immediately from browser address bar via history.replaceState (Security rule)
+      if (token && window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      const showState = (id) => {
+        document.getElementById("changeEntryCodeBtn").hidden=["stateGateway","stateValidating","stateSuccess"].includes(id);
+        ["stateValidating", "stateSuccess", "stateOccupied", "stateClosed", "stateExpired", "stateBackendUnavailable", "stateGateway"].forEach(s => {
+          const el = document.getElementById(s);
+          if (el) el.style.display = (s === id ? "block" : "none");
+        });
+      };
+
+      let submitting=false;
+      const scanner=window.SmartShelfEntryQr.attach(t=>validateAndEnter(t));
+      async function validateAndEnter(t) {
+        if(submitting)return;
+        try { t=window.SmartShelfEntryQr.tokenFromInput(t); }
+        catch(error){document.getElementById("qrScanStatus").textContent=error.message;showState("stateGateway");return;}
+        token=t;submitting=true;scanner.stop();
+        showState("stateValidating");
+        try {
+          const enterApiUrl = window.SmartShelfApi 
+            ? window.SmartShelfApi.apiUrl("/api/enter")
+            : "/api/enter";
+
+          let res = null;
+          let data = null;
+          let fetchFailed = false;
+
+          try {
+            res = await fetch(enterApiUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token: t })
+            });
+            data = await res.json().catch(() => null);
+          } catch (netErr) {
+            fetchFailed = true;
+          }
+
+          // 1. If backend responded successfully:
+          if (res && res.ok && data && data.status === "ACTIVE" && data.session_secret) {
+            sessionStorage.setItem("smartshelf_session_secret", data.session_secret);
+            localStorage.setItem("smartshelf_session_secret", data.session_secret);
+            sessionStorage.setItem("smartshelf_session_id", String(data.session_id));
+
+            showState("stateSuccess");
+            if (window.SmartShelfUI) {
+              SmartShelfUI.triggerHaptic([30, 60]);
+            }
+
+            setTimeout(() => {
+              window.location.href = `/customer/?session=${encodeURIComponent(data.session_secret)}`;
+            }, 900);
+            return;
+          }
+
+          // The static Vercel frontend never simulates a customer session.
+          if (fetchFailed || !res || res.status >= 500 || !data) {
+            showState("stateBackendUnavailable");
+            return;
+          }
+
+          // 3. Structured error handling from live backend
+          const errData = data || (await res.json().catch(() => ({})));
+          const errorCode = errData.error || (errData.detail && errData.detail.error) || "";
+          if (res.status === 409 || errorCode === "STORE_OCCUPIED") {
+            showState("stateOccupied");
+          } else if (res.status === 403 || errorCode === "STORE_CLOSED") {
+            showState("stateClosed");
+          } else if (res.status === 410 || errorCode === "TOKEN_EXPIRED" || errorCode === "TOKEN_USED") {
+            showState("stateExpired");
+          } else {
+            showState("stateExpired");
+          }
+        } catch (err) {
+          showState("stateBackendUnavailable");
+        } finally { submitting=false; }
+      }
+
+      document.getElementById("retryEnterBtn")?.addEventListener("click", () => {
+        if (token) validateAndEnter(token);
+        else showState("stateGateway");
+      });
+
+      document.getElementById("changeEntryCodeBtn").onclick=()=>{token=null;showState("stateGateway");document.getElementById("qrScanStatus").textContent="";document.getElementById("manualTokenInput").focus();};
+
+      // Manual token form handler
+      document.getElementById("manualTokenForm")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const inp = document.getElementById("manualTokenInput").value.trim();
+        if (inp) {
+          validateAndEnter(inp);
+        }
+      });
+
+      if (!token) {
+        showState("stateGateway");
+        return;
+      }
+
+      validateAndEnter(token);
+    });
+  </script>
+</body>
+</html>

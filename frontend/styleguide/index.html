@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>سیستم طراحی و راهنمای سبک | SMARTSHELF Styleguide</title>
+  
+  <!-- Dana Font & Design Tokens -->
+  <link rel="stylesheet" href="/assets/fonts/dana.css">
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/base.css">
+  <link rel="stylesheet" href="/assets/css/components.css">
+  <link rel="stylesheet" href="/assets/css/motion.css">
+
+  <style>
+    /* Styleguide specific layout & documentation chrome */
+    .sg-header {
+      background-color: var(--bg-surface);
+      border-block-end: 1px solid var(--border-default);
+      padding-block: var(--space-4);
+      position: sticky;
+      top: 0;
+      z-index: var(--z-sticky);
+      backdrop-filter: blur(8px);
+    }
+    .sg-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+    .sg-controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .sg-section {
+      padding-block: var(--space-8);
+      border-block-end: 1px solid var(--border-subtle);
+    }
+    .sg-section-title {
+      font-size: var(--font-xl);
+      font-weight: var(--font-weight-black);
+      color: var(--text-primary);
+      margin-block-end: var(--space-1);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .sg-section-desc {
+      color: var(--text-muted);
+      font-size: var(--font-sm);
+      margin-block-end: var(--space-5);
+    }
+    .sg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: var(--space-4);
+    }
+    .sg-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .sg-card-title {
+      font-size: var(--font-sm);
+      font-weight: var(--font-weight-bold);
+      color: var(--text-secondary);
+      border-block-end: 1px solid var(--border-subtle);
+      padding-block-end: var(--space-2);
+    }
+    .color-swatch {
+      height: 80px;
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: var(--space-2);
+      color: #fff;
+      font-size: var(--font-xs);
+      font-weight: var(--font-weight-bold);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+    }
+    .color-name {
+      font-size: var(--font-sm);
+      font-weight: var(--font-weight-bold);
+    }
+    .color-hex {
+      opacity: 0.85;
+      font-family: var(--font-mono);
+    }
+    .demo-bar-wrapper {
+      background-color: var(--bg-muted);
+      padding: var(--space-3);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation & Global Controls -->
+  <header class="sg-header">
+    <div class="container sg-header-inner">
+      <div style="display: flex; align-items: center; gap: var(--space-3);">
+        <img src="/assets/img/logo.svg" alt="SMARTSHELF" style="height: 38px; width: auto; color: var(--text-primary);">
+      </div>
+      <div class="sg-controls">
+        <button id="themeToggleBtn" class="btn btn-secondary btn-sm" type="button" aria-label="تغییر تم">
+          <span id="themeLabel">🌓 تغییر تم</span>
+        </button>
+        <button id="dirToggleBtn" class="btn btn-secondary btn-sm" type="button" aria-label="تغییر جهت">
+          <span id="dirLabel">🌐 RTL / LTR</span>
+        </button>
+        <a href="/" class="btn btn-outline btn-sm">خروج به پرتال</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-block-end: 100px;">
+    
+    <!-- 1. Brand Identity & Color Palette -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۱. هویت بصری و پالت رنگی</h2>
+      <p class="sg-section-desc">پالت اصلی با استانداردهای سخت‌گیرانه WCAG 2.1 AA (حداقل نسبت کنتراست ۴٫۵ به ۱ برای متن‌های استاندارد).</p>
+      
+      <div class="sg-grid">
+        <div class="sg-card">
+          <div class="color-swatch" style="background-color: #321126;">
+            <span class="color-name">Plum (آلبالویی تیره)</span>
+            <span class="color-hex">#321126</span>
+          </div>
+          <p style="font-size: var(--font-xs); color: var(--text-muted);">رنگ زمینه تم تیره / رنگ متن اصلی تم روشن (کنتراست ۱۴٫۹:۱ روی Cream)</p>
+        </div>
+
+        <div class="sg-card">
+          <div class="color-swatch" style="background-color: #641B3A;">
+            <span class="color-name">Burgundy (شرابی)</span>
+            <span class="color-hex">#641B3A</span>
+          </div>
+          <p style="font-size: var(--font-xs); color: var(--text-muted);">رنگ ثانویه و حاشیه‌های تاکیدی (کنتراست ۱۰٫۵:۱ روی Cream)</p>
+        </div>
+
+        <div class="sg-card">
+          <div class="color-swatch" style="background-color: #B72D52;">
+            <span class="color-name">Crimson (زرشکی)</span>
+            <span class="color-hex">#B72D52</span>
+          </div>
+          <p style="font-size: var(--font-xs); color: var(--text-muted);">رنگ برند و دکمه‌های اصلی در تم روشن (کنتراست ۵٫۳:۱ روی Cream)</p>
+        </div>
+
+        <div class="sg-card">
+          <div class="color-swatch" style="background-color: #D34C67;">
+            <span class="color-name">Soft Crimson (زرشکی ملایم)</span>
+            <span class="color-hex">#D34C67</span>
+          </div>
+          <p style="font-size: var(--font-xs); color: var(--text-muted);">آیکون‌ها، حاشیه‌ها، دکوراتیو و رنگ اصلی تم تیره (نه برای متن کوچک روی زمینه روشن)</p>
+        </div>
+
+        <div class="sg-card">
+          <div class="color-swatch" style="background-color: #F7F0E8; color: #321126;">
+            <span class="color-name">Cream (کرم)</span>
+            <span class="color-hex">#F7F0E8</span>
+          </div>
+          <p style="font-size: var(--font-xs); color: var(--text-muted);">سطوح کارت‌ها و بخش‌های اصلی تم روشن</p>
+        </div>
+
+        <div class="sg-card">
+          <div class="color-swatch" style="background-color: #FFFDF9; color: #321126;">
+            <span class="color-name">Ivory (عاجی)</span>
+            <span class="color-hex">#FFFDF9</span>
+          </div>
+          <p style="font-size: var(--font-xs); color: var(--text-muted);">کانواس و پس‌زمینه‌ی کلی تم روشن</p>
+        </div>
+      </div>
+
+      <!-- Semantic Status Colors -->
+      <h3 style="margin-block-start: var(--space-6); font-size: var(--font-lg);">رنگ‌های معنایی (Semantic Tokens)</h3>
+      <div class="chips-container" style="margin-block-start: var(--space-2);">
+        <span class="badge badge-success">موفقیت (Success) ✓</span>
+        <span class="badge badge-warning">هشدار (Warning) ⚠</span>
+        <span class="badge badge-danger">خطا / بحرانی (Danger) ✕</span>
+        <span class="badge badge-info">اطلاعات (Info) ℹ</span>
+      </div>
+    </section>
+
+    <!-- 2. Typography & Iranian Numbers / Dates -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۲. تایپوگرافی، اعداد فارسی، تومان و تاریخ جلالی</h2>
+      <p class="sg-section-desc">فونت دانا (Dana FaNum) به‌صورت محلی با اعداد تمام‌فارسی و تبدیل خودکار ارقام و تاریخ خورشیدی.</p>
+      
+      <div class="sg-card">
+        <h1>تیتر یک — H1 فروشگاه هوشمند خودکار</h1>
+        <h2>تیتر دو — H2 رهگیری هوشمند قفسه و کالا</h2>
+        <h3>تیتر سه — H3 بدون صف، بدون صندوق، ورود و خروج آزاد</h3>
+        <p>متن معمولی بدنه: این سامانه با پردازش تصویر محلی و سنسورهای قفسه هوشمند، تغییرات سبد خرید را در لحظه تشخیص می‌دهد. تمامی قیمت‌ها به تومان محاسبه می‌شوند.</p>
+        
+        <div style="background-color: var(--bg-surface-elevated); padding: var(--space-3); border-radius: var(--radius-md); border: 1px dashed var(--border-default);">
+          <div style="display: flex; justify-content: space-between; margin-block-end: var(--space-2);">
+            <span>فرمت‌کننده تومان (formatToman):</span>
+            <strong id="demoToman" style="color: var(--primary);">...</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-block-end: var(--space-2);">
+            <span>تاریخ جلالی زنده (formatJalali):</span>
+            <strong id="demoJalali">...</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>نرمال‌سازی ارقام ورودی (normalizeDigits):</span>
+            <span style="font-family: var(--font-mono); direction: ltr;">"۱۲۳۴۵" &rarr; <span id="demoNormalized">...</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Buttons & Actions -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۳. دکمه‌ها و اهداف لمسی (حداقل ۴۴px)</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center;">
+        <button class="btn btn-primary" type="button">دکمه اصلی (Primary)</button>
+        <button class="btn btn-secondary" type="button">دکمه ثانویه (Secondary)</button>
+        <button class="btn btn-outline" type="button">خطی (Outline)</button>
+        <button class="btn btn-ghost" type="button">ساده (Ghost)</button>
+        <button class="btn btn-danger" type="button">خطر / حذف</button>
+        <button class="btn btn-primary btn-sm" type="button">اندازه کوچک (Small)</button>
+        <button class="btn btn-primary btn-lg" type="button">بزرگ (Large)</button>
+        <button class="btn btn-primary" disabled type="button">غیرفعال (Disabled)</button>
+      </div>
+    </section>
+
+    <!-- 4. Product Card, Stepper, Badges & Pulse -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۴. کارت محصول، استپر، نشان‌ها و پالس زنده</h2>
+      
+      <div class="sg-grid">
+        <!-- Product Card Active -->
+        <div class="product-card">
+          <img src="/assets/img/placeholder.png" alt="آبمیوه طبیعی" class="product-card-img">
+          <div class="product-card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="product-card-title">آبمیوه پرتقال ۱ لیتری سن‌ایچ</span>
+              <span class="badge badge-success">موجود</span>
+            </div>
+            <span class="product-card-price">۴۵٬۰۰۰ تومان</span>
+            <div class="product-card-actions">
+              <div class="stepper" id="demoStepper">
+                <button class="stepper-btn" data-action="decrease" type="button" aria-label="کاهش">−</button>
+                <span class="stepper-value">۱</span>
+                <button class="stepper-btn" data-action="increase" type="button" aria-label="افزایش">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Card Live Recognition -->
+        <div class="product-card">
+          <img src="/assets/img/placeholder.png" alt="بیسکویت ساقه طلایی" class="product-card-img">
+          <div class="product-card-body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="product-card-title">بیسکویت سبوس‌دار مینو</span>
+              <span class="badge badge-info">
+                <span class="pulse-dot pulse-dot-live"></span>
+                زنده
+              </span>
+            </div>
+            <span class="product-card-price">۲۵٬۰۰۰ تومان</span>
+            <div class="product-card-actions">
+              <span style="font-size: var(--font-xs); color: var(--text-muted);">جایگاه شماره ۲</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Segmented Control, Chips & Stepper -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۵. کنترل سگمنت، چیپ‌ها و مراحل پیشرفت</h2>
+      
+      <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <!-- Segmented Control -->
+        <div>
+          <span style="font-size: var(--font-sm); color: var(--text-muted); display: block; margin-block-end: var(--space-1);">کنترل سگمنت (Segmented Control):</span>
+          <div class="segmented-control" role="tablist">
+            <button class="segment-item active" type="button">نمای زنده</button>
+            <button class="segment-item" type="button">فاکتورها</button>
+            <button class="segment-item" type="button">تنظیمات</button>
+          </div>
+        </div>
+
+        <!-- Chips -->
+        <div>
+          <span style="font-size: var(--font-sm); color: var(--text-muted); display: block; margin-block-end: var(--space-1);">چیپ‌ها و فیلترها (Chips):</span>
+          <div class="chips-container">
+            <button class="chip active" type="button">همه رویدادها</button>
+            <button class="chip" type="button">برداشت محصول</button>
+            <button class="chip" type="button">بازگرداندن</button>
+            <button class="chip" type="button">خطاها</button>
+          </div>
+        </div>
+
+        <!-- Checkout Steps Stepper -->
+        <div>
+          <span style="font-size: var(--font-sm); color: var(--text-muted); display: block; margin-block-end: var(--space-1);">مراحل پرداخت (Stepper):</span>
+          <div class="stepper-steps">
+            <div class="step-node completed">
+              <div class="step-circle">✓</div>
+              <span class="step-label">ورود به فروشگاه</span>
+            </div>
+            <div class="step-node active">
+              <div class="step-circle">۲</div>
+              <span class="step-label">برداشت کالا</span>
+            </div>
+            <div class="step-node">
+              <div class="step-circle">۳</div>
+              <span class="step-label">پرداخت و خروج</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. KPIs & Confidence Meter -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۶. کارت‌های شاخص عملکرد (KPI) و نوار اطمینان</h2>
+      
+      <div class="sg-grid" style="margin-block-end: var(--space-4);">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span>جلسات امروز</span>
+            <span>👥</span>
+          </div>
+          <div class="kpi-value">۱۴۲</div>
+          <div class="kpi-trend" style="color: var(--color-success);">
+            <span>↑ ۱۲٪</span>
+            <span style="color: var(--text-muted);">نسبت به دیروز</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span>فروش شبیه‌سازی‌شده</span>
+            <span>💳</span>
+          </div>
+          <div class="kpi-value">۶٬۸۴۰٬۰۰۰ تومان</div>
+          <div class="kpi-trend" style="color: var(--primary);">
+            <span>۲۴ فاکتور ثبت‌شده</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confidence Meter -->
+      <div class="sg-card">
+        <span class="sg-card-title">نوار اطمینان هوش مصنوعی (Confidence Meter)</span>
+        <div class="confidence-meter">
+          <div class="confidence-header">
+            <span>اطمینان تشخیص: آبمیوه پرتقال</span>
+            <strong style="color: var(--color-success);">۹۴٪ (بسیار بالا)</strong>
+          </div>
+          <div class="confidence-track">
+            <div class="confidence-bar confidence-high" style="width: 94%;"></div>
+          </div>
+        </div>
+
+        <div class="confidence-meter" style="margin-block-start: var(--space-3);">
+          <div class="confidence-header">
+            <span>اطمینان تشخیص: بیسکویت ساقه طلایی</span>
+            <strong style="color: var(--color-warning);">۶۵٪ (متوسط — نیازمند بازبینی)</strong>
+          </div>
+          <div class="confidence-track">
+            <div class="confidence-bar confidence-medium" style="width: 65%;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Interactive Modals, Bottom Sheet & Toasts -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۷. مودال، باتم‌شیت (با امکان کشیدن) و اعلان Toast</h2>
+      
+      <div style="display: flex; flex-wrap: wrap; gap: var(--space-3);">
+        <button id="triggerToastBtn" class="btn btn-secondary" type="button">نمایش Toast با بازگردانی (Undo)</button>
+        <button id="triggerSheetBtn" class="btn btn-secondary" type="button">باز کردن Bottom Sheet</button>
+        <button id="triggerModalBtn" class="btn btn-secondary" type="button">باز کردن مودال</button>
+      </div>
+    </section>
+
+    <!-- 8. Perforated Ticket Receipt (لبه دندانه‌دار بلیت) -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۸. رسید فاکتور با لبه‌ی دندانه‌دار بلیت</h2>
+      <p class="sg-section-desc">رسید چاپی و دیجیتال با دندانه‌های بالا و پایین، شناسه پیگیری و اقلام خریداری‌شده.</p>
+      
+      <div class="ticket-receipt anim-ticket-rollout">
+        <div class="ticket-header">
+          <img src="/assets/img/logo-mark.svg" alt="SMARTSHELF" style="width: 36px; height: 36px; margin: 0 auto var(--space-2);">
+          <h3 style="margin-bottom: 2px;">فروشگاه هوشمند خودکار</h3>
+          <span style="font-size: var(--font-xs); color: var(--text-muted);" id="ticketDate">۱۴۰۵/۰۸/۱۲ — ۱۸:۴۵</span>
+        </div>
+        
+        <div class="ticket-line-item">
+          <span>آبمیوه پرتقال ۱ لیتری × ۲</span>
+          <span>۹۰٬۰۰۰ تومان</span>
+        </div>
+        <div class="ticket-line-item">
+          <span>بیسکویت ساقه طلایی × ۱</span>
+          <span>۲۵٬۰۰۰ تومان</span>
+        </div>
+        
+        <hr class="ticket-divider">
+        
+        <div class="ticket-total">
+          <span>جمع کل پرداختی:</span>
+          <span>۱۱۵٬۰۰۰ تومان</span>
+        </div>
+        
+        <div style="text-align: center; margin-block-start: var(--space-4); font-size: var(--font-xs); color: var(--text-muted);">
+          <span>شماره فاکتور: #INV-2048</span>
+          <br>
+          <span>از خرید شما سپاسگزاریم</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. Form Fields & Validation -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۹. فرم‌ها، اعتبارسنجی و پیام خطای فارسی</h2>
+      
+      <div class="sg-card" style="max-width: 480px;">
+        <div class="form-group">
+          <label class="form-label" for="inpNormal">نام محصول</label>
+          <input class="form-input" id="inpNormal" type="text" placeholder="مثال: چیپس ساده چی‌توز">
+          <span class="form-hint">نام را دقیق و طبق بسته‌بندی وارد نمایید.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="inpError">بارکد بین‌المللی (GTIN / EAN)</label>
+          <input class="form-input is-invalid" id="inpError" type="text" value="62601234567" aria-invalid="true" dir="ltr">
+          <span class="form-error">
+            <span>⚠</span>
+            رقم کنترلی GTIN نامعتبر است (طول ۱۳ رقم استاندارد رعایت نشده است).
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. Skeleton Loader & Empty State -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۱۰. اسکلت بارگذاری (Skeleton Shimmer) و حالت خالی</h2>
+      
+      <div class="sg-grid">
+        <div class="sg-card">
+          <span class="sg-card-title">اسکلت شیمر بدون پرش چیدمان</span>
+          <div style="display: flex; gap: var(--space-3); align-items: center;">
+            <div class="skeleton skeleton-avatar"></div>
+            <div style="flex: 1;">
+              <div class="skeleton skeleton-title"></div>
+              <div class="skeleton skeleton-text"></div>
+              <div class="skeleton skeleton-text" style="width: 50%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sg-card">
+          <div class="empty-state">
+            <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119.993Z" />
+            </svg>
+            <div class="empty-state-title">سبد خرید شما خالی است</div>
+            <div class="empty-state-desc">کافیست محصول مورد نظر خود را از قفسه بردارید تا به‌طور خودکار در سبد شما ثبت شود.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. Responsive Table to Card layout -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۱۱. جدول واکنش‌گرا (در موبایل تبدیل به کارت می‌شود)</h2>
+      
+      <div class="table-container">
+        <table class="responsive-table">
+          <thead>
+            <tr>
+              <th>شناسه رویداد</th>
+              <th>جایگاه</th>
+              <th>محصول</th>
+              <th>نوع رویداد</th>
+              <th>زمان</th>
+              <th>وضعیت</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="شناسه رویداد">EVT-9041</td>
+              <td data-label="جایگاه">جایگاه ۱</td>
+              <td data-label="محصول">شیر پاستوریزه کم‌چرب</td>
+              <td data-label="نوع رویداد"><span class="badge badge-info">برداشت کالا</span></td>
+              <td data-label="زمان">۱۸:۴۱:۰۵</td>
+              <td data-label="وضعیت"><span class="badge badge-success">ثبت شد</span></td>
+            </tr>
+            <tr>
+              <td data-label="شناسه رویداد">EVT-9042</td>
+              <td data-label="جایگاه">جایگاه ۳</td>
+              <td data-label="محصول">بیسکویت ساقه طلایی</td>
+              <td data-label="نوع رویداد"><span class="badge badge-warning">بازگرداندن کالا</span></td>
+              <td data-label="زمان">۱۸:۴۲:۳۰</td>
+              <td data-label="وضعیت"><span class="badge badge-neutral">تأیید شد</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 12. Motion Demos (Add/Remove, Checkmark, Shake) -->
+    <section class="sg-section">
+      <h2 class="sg-section-title">۱۲. ریزانیمیشن‌ها و حرکت (Motion System)</h2>
+      <p class="sg-section-desc">مدت ۱۵۰ تا ۳۵۰ میلی‌ثانیه بر پایه‌ی منحنی cubic-bezier(.2,.8,.2,1) تنها با transform و opacity.</p>
+
+      <div class="sg-grid">
+        <!-- SVG Checkmark Draw -->
+        <div class="sg-card" style="align-items: center; text-align: center;">
+          <span class="sg-card-title" style="width: 100%;">تیک متحرک ترسیمی شناسایی موفق</span>
+          <div style="width: 64px; height: 64px; margin-block: var(--space-2);">
+            <svg viewBox="0 0 48 48" fill="none" style="width: 100%; height: 100%;">
+              <circle cx="24" cy="24" r="22" stroke="var(--color-success)" stroke-width="3" fill="var(--color-success-bg)"/>
+              <path class="anim-checkmark-draw" d="M14 24L21 31L34 17" stroke="var(--color-success)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <button id="replayCheckmarkBtn" class="btn btn-outline btn-sm" type="button">تکرار انیمیشن</button>
+        </div>
+
+        <!-- Unknown Product Shake -->
+        <div class="sg-card" style="align-items: center; text-align: center;">
+          <span class="sg-card-title" style="width: 100%;">لرزش ملایم محصول نامشخص</span>
+          <div id="shakeTarget" class="badge badge-danger" style="font-size: var(--font-sm); padding: var(--space-2) var(--space-3); margin-block: var(--space-4);">
+            ⚠ محصول ناشناخته / نیازمند بررسی
+          </div>
+          <button id="triggerShakeBtn" class="btn btn-outline btn-sm" type="button">اجرای لرزش (Shake)</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modals & Sheets (Interactive Demo Targets) -->
+  
+  <!-- Demo Bottom Sheet -->
+  <div class="sheet-backdrop" id="demoSheetBackdrop"></div>
+  <div class="bottom-sheet" id="demoSheet" aria-hidden="true">
+    <div class="sheet-handle-bar">
+      <div class="sheet-handle"></div>
+    </div>
+    <div class="sheet-content">
+      <h3>جزئیات سبد خرید زنده</h3>
+      <p style="color: var(--text-muted); font-size: var(--font-sm);">این پنل با لمس و کشیدن به سمت پایین (Swipe) یا زدن دکمه‌ی زیر بسته می‌شود.</p>
+      <div class="product-card" style="margin-block: var(--space-3);">
+        <img src="/assets/img/placeholder.png" alt="محصول" class="product-card-img" style="width: 60px; height: 60px;">
+        <div class="product-card-body">
+          <span class="product-card-title">آبمیوه طبیعی سن‌ایچ</span>
+          <span class="product-card-price">۴۵٬۰۰۰ تومان</span>
+        </div>
+      </div>
+      <button class="btn btn-secondary" style="width: 100%;" id="closeSheetBtn" type="button">بستن شیت</button>
+    </div>
+  </div>
+
+  <!-- Demo Modal -->
+  <div class="modal-backdrop" id="demoModal" aria-hidden="true">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>خروج از فروشگاه</h3>
+        <button class="btn btn-ghost btn-sm" id="closeModalCrossBtn" type="button" aria-label="بستن">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>سبد خرید شما هم‌اکنون خالی است. آیا مایلید بدون خرید از فروشگاه خارج شوید؟</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancelModalBtn" type="button">انصراف</button>
+        <button class="btn btn-primary" id="confirmModalBtn" type="button">تأیید خروج</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo Sticky Bottom Action Bar (Simulated Customer View) -->
+  <aside class="sticky-action-bar">
+    <div class="sticky-action-total">
+      <span class="label">جمع کل خرید:</span>
+      <span class="amount" id="stickyTotal">۱۱۵٬۰۰۰ تومان</span>
+    </div>
+    <button class="btn btn-primary" type="button" id="demoCheckoutBtn">تکمیل و پرداخت</button>
+  </aside>
+
+  <!-- Interactive JavaScript -->
+  <script src="/assets/js/format.js"></script>
+  <script src="/assets/js/ui.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // 1. Controls
+      var themeBtn = document.getElementById('themeToggleBtn');
+      var dirBtn = document.getElementById('dirToggleBtn');
+
+      if (themeBtn) {
+        themeBtn.addEventListener('click', function () {
+          var t = SmartShelfUI.toggleTheme();
+          document.getElementById('themeLabel').textContent = t === 'dark' ? '☀️ تم روشن' : '🌙 تم تیره';
+        });
+      }
+
+      if (dirBtn) {
+        dirBtn.addEventListener('click', function () {
+          var d = SmartShelfUI.toggleDirection();
+          document.getElementById('dirLabel').textContent = d === 'rtl' ? '🌐 حالت چپ‌چین (LTR)' : '🌐 حالت راست‌چین (RTL)';
+        });
+      }
+
+      // 2. Formats Demo
+      document.getElementById('demoToman').textContent = SmartShelfFormat.formatToman(1485000);
+      document.getElementById('demoJalali').textContent = SmartShelfFormat.formatJalali(new Date());
+      document.getElementById('demoNormalized').textContent = SmartShelfFormat.normalizeDigits('۱۲۳۴۵');
+      document.getElementById('ticketDate').textContent = SmartShelfFormat.formatJalali(new Date());
+
+      // 3. Stepper
+      SmartShelfUI.initStepper('#demoStepper', {
+        initial: 1,
+        min: 1,
+        max: 10,
+        onChange: function (val) {
+          console.log('Stepper value:', val);
+        }
+      });
+
+      // 4. Toast
+      var toastBtn = document.getElementById('triggerToastBtn');
+      if (toastBtn) {
+        toastBtn.addEventListener('click', function () {
+          SmartShelfUI.showToast({
+            message: 'آبمیوه پرتقال به سبد خرید اضافه شد.',
+            type: 'success',
+            undoText: 'بازگردانی',
+            onUndo: function () {
+              SmartShelfUI.showToast({ message: 'عملیات با موفقیت لغو شد.' });
+            }
+          });
+        });
+      }
+
+      // 5. Bottom Sheet
+      var sheetBtn = document.getElementById('triggerSheetBtn');
+      var closeSheetBtn = document.getElementById('closeSheetBtn');
+      var sheet = document.getElementById('demoSheet');
+      var backdrop = document.getElementById('demoSheetBackdrop');
+
+      if (sheetBtn) {
+        sheetBtn.addEventListener('click', function () {
+          SmartShelfUI.openBottomSheet(sheet, backdrop);
+        });
+      }
+      if (closeSheetBtn) {
+        closeSheetBtn.addEventListener('click', function () {
+          SmartShelfUI.closeBottomSheet(sheet, backdrop);
+        });
+      }
+      if (backdrop) {
+        backdrop.addEventListener('click', function () {
+          SmartShelfUI.closeBottomSheet(sheet, backdrop);
+        });
+      }
+
+      // 6. Modal
+      var modalBtn = document.getElementById('triggerModalBtn');
+      var modal = document.getElementById('demoModal');
+      var closeModalCross = document.getElementById('closeModalCrossBtn');
+      var cancelModal = document.getElementById('cancelModalBtn');
+      var confirmModal = document.getElementById('confirmModalBtn');
+
+      if (modalBtn) {
+        modalBtn.addEventListener('click', function () {
+          SmartShelfUI.openModal(modal);
+        });
+      }
+      function closeM() { SmartShelfUI.closeModal(modal); }
+      if (closeModalCross) closeModalCross.addEventListener('click', closeM);
+      if (cancelModal) cancelModal.addEventListener('click', closeM);
+      if (confirmModal) confirmModal.addEventListener('click', function () {
+        closeM();
+        SmartShelfUI.showToast({ message: 'خروج از فروشگاه انجام شد.' });
+      });
+
+      // 7. Motion
+      var replayCheck = document.getElementById('replayCheckmarkBtn');
+      if (replayCheck) {
+        replayCheck.addEventListener('click', function () {
+          var p = document.querySelector('.anim-checkmark-draw');
+          if (p) {
+            p.classList.remove('anim-checkmark-draw');
+            void p.offsetWidth;
+            p.classList.add('anim-checkmark-draw');
+          }
+        });
+      }
+
+      var shakeBtn = document.getElementById('triggerShakeBtn');
+      var shakeTarget = document.getElementById('shakeTarget');
+      if (shakeBtn && shakeTarget) {
+        shakeBtn.addEventListener('click', function () {
+          shakeTarget.classList.remove('anim-product-shake');
+          void shakeTarget.offsetWidth;
+          shakeTarget.classList.add('anim-product-shake');
+          SmartShelfUI.triggerHaptic([30, 50, 30]);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

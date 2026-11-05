@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SMARTSHELF | کالیبراسیون دو مرجعی</title>
+<meta name="robots" content="noindex,nofollow">
+<script>
+  if (new URLSearchParams(location.search).get("embed") !== "admin") location.replace("/admin/");
+</script>
+<style>
+*{box-sizing:border-box}
+:root{color-scheme:dark}
+body{margin:0;background:#0b1220;color:#eef4fc;font:14px system-ui,Tahoma,sans-serif}
+main{max-width:1180px;margin:auto;padding:16px}
+h1{font-size:23px;margin:6px 0 4px}
+h2{font-size:16px;margin:0 0 12px}
+p{line-height:1.85}
+.muted{color:#a8bbd3;line-height:1.85;margin:4px 0}
+.small{font-size:12px;color:#9db4ce;line-height:1.85}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(270px,.75fr);gap:14px}
+.card{background:#162238;border:1px solid #304462;padding:16px;border-radius:14px;margin:12px 0}
+.notice{border-right:4px solid #eebd63;padding:10px 12px;background:#242b39;border-radius:8px;line-height:1.9;margin:10px 0}
+label{display:block;color:#d8e6f5;font-size:13px}
+input[type=file],select{display:block;width:100%;margin-top:7px;padding:9px;border:1px solid #3a5578;border-radius:8px;background:#101b2d;color:#d8e6f5}
+select{min-height:42px}
+button{padding:10px 13px;border-radius:9px;background:#29476e;color:white;border:1px solid #6482a9;cursor:pointer;font:inherit}
+button.primary{background:#346de0;border-color:#5488f2}
+button.danger{background:#6c2934;border-color:#a54b5c}
+button:disabled{opacity:.5;cursor:not-allowed}
+.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.buttons button{flex:1;min-width:120px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.screen{background:#080f1a;min-height:200px;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;margin:10px 0}
+.screen img{display:block;max-width:100%;max-height:390px;object-fit:contain}
+#feedImage{width:100%;max-height:420px;object-fit:contain}
+#guideImage{position:absolute;inset:0;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;opacity:.25;pointer-events:none;display:none}
+#placeholder{color:#91a8c3;text-align:center;padding:24px}
+#roiCanvas{display:block;width:100%;height:auto;max-height:420px;touch-action:none;cursor:crosshair}
+.status{font-size:24px;font-weight:800;margin:8px 0}
+.green{color:#5ae2b2}.red{color:#ff9a9a}.yellow{color:#ffd18b}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{background:#101b2d;border:1px solid #2b405e;border-radius:9px;padding:10px}
+.kpi span{display:block;color:#9db4ce;font-size:11px}
+.kpi strong{display:block;margin-top:5px;font-size:17px;direction:ltr;text-align:right}
+ul{list-style:none;padding:0;margin:0;max-height:240px;overflow:auto}
+li{padding:8px 0;border-bottom:1px solid #304563;font-size:12px}
+#adminGate{display:flex;align-items:center;justify-content:center;min-height:180px;padding:24px;text-align:center;color:#d8e6f5;background:#162238;border:1px solid #304462;border-radius:14px;margin:18px}
+body.admin-ready #adminGate{display:none}
+body.embedded #presenceApp{visibility:hidden}
+body.embedded.admin-ready #presenceApp{visibility:visible}
+.pill{font-size:11px;padding:4px 9px;border-radius:20px;background:#1e3c31;color:#7be3b8}
+@media(max-width:760px){.grid,.two{grid-template-columns:1fr}main{padding:10px}.card{padding:12px}h1{font-size:20px}}
+</style>
+</head>
+<body class="embedded">
+<div id="adminGate">در حال تأیید نشست مدیر...</div>
+<main id="presenceApp">
+  <div class="topline">
+    <div>
+      <h1>تشخیص حضور و برداشتن محصول</h1>
+      <p class="muted">کالیبراسیون پایدار با دو تصویر مرجع؛ یک تصویر محصول حاضر و یک تصویر جایگاه خالی</p>
+    </div>
+    <span class="pill" id="health">در حال اتصال به موتور...</span>
+  </div>
+  <div class="notice">
+    تصاویر اصلی فقط برای استخراج ویژگی در حافظه پردازش می‌شوند؛ ویژگی‌های کالیبراسیون در دیتابیس ذخیره می‌شوند. خروجی این موتور به پایپ‌لاین اصلی جایگاه متصل است؛ اما آزمایش دستی این صفحه به‌تنهایی سبد خرید را تغییر نمی‌دهد.
+  </div>
+
+  <div class="grid">
+    <section>
+      <div class="card">
+        <h2>۱. انتخاب جایگاه و ثبت دو مرجع</h2>
+        <label>جایگاه قفسه
+          <select id="zoneSelect"><option value="">در حال دریافت جایگاه‌ها...</option></select>
+        </label>
+        <div class="two" style="margin-top:12px">
+          <label>تصویر مرجع محصول حاضر
+            <input id="presentFile" type="file" accept="image/*">
+          </label>
+          <label>تصویر مرجع جایگاه خالی
+            <input id="emptyFile" type="file" accept="image/*">
+          </label>
+        </div>
+        <div class="buttons">
+          <button id="capturePresent">ثبت تصویر «محصول حاضر» از دوربین تبلت</button>
+          <button id="captureEmpty">ثبت تصویر «جایگاه خالی» از دوربین تبلت</button>
+        </div>
+        <p class="small">ابتدا محصول را در جایگاه قرار دهید و مرجع حاضر را ثبت کنید؛ سپس محصول را بردارید و مرجع خالی را ثبت کنید. هر دو تصویر باید از همان دوربین و زاویه باشند.</p>
+        <div id="refPreview" style="display:none">
+          <p class="small">برای انتخاب محدوده دقیق محصول، روی تصویر مرجع خالی با انگشت یا ماوس کادر بکشید.</p>
+          <canvas id="roiCanvas"></canvas>
+        </div>
+        <div class="buttons">
+          <button id="fullFrame">استفاده از کل تصویر</button>
+          <button class="primary" id="calibrate">کالیبره‌کردن و ذخیره در سرور</button>
+          <button class="danger" id="clearCalibration">پاک‌کردن کالیبراسیون این جایگاه</button>
+        </div>
+        <p class="small" id="calMessage">برای شروع، دو تصویر مرجع را انتخاب یا از دوربین تبلت ثبت کنید.</p>
+      </div>
+
+      <div class="card">
+        <h2>۲. تصویر زنده دوربین تبلت</h2>
+        <div class="buttons">
+          <button class="primary" id="startCamera">اتصال به فریم زنده تبلت</button>
+          <button id="stopCamera">توقف دریافت تصویر</button>
+          <button id="guideBtn">راهنمای تراز: خاموش</button>
+        </div>
+        <div class="screen">
+          <span id="placeholder">برای مشاهده تصویر زنده، تبلت باید از صفحه /camera به بک‌اند متصل باشد.</span>
+          <img id="feedImage" alt="تصویر زنده دوربین تبلت" style="display:none">
+          <img id="guideImage" alt="راهنمای مرجع خالی">
+        </div>
+        <div class="two">
+          <label>تصویر آزمایشی (اختیاری)
+            <input id="testPhoto" type="file" accept="image/*">
+          </label>
+          <label>ویدیوی آزمایشی (اختیاری)
+            <input id="testVideo" type="file" accept="video/*">
+          </label>
+        </div>
+        <video id="videoFeed" muted playsinline style="display:none;max-width:100%;max-height:320px"></video>
+        <div class="buttons">
+          <button class="primary" id="checkFrame">بررسی همین فریم</button>
+          <button id="continuous">شروع بررسی پیوسته</button>
+        </div>
+        <p class="small">تشخیص زنده اصلی در بک‌اند با فریم‌های WebSocket انجام می‌شود. این بخش برای آزمایش و مشاهده خروجی همان موتور است.</p>
+      </div>
+    </section>
+
+    <aside>
+      <div class="card">
+        <h2>۳. نتیجه تشخیص</h2>
+        <div id="state" class="status yellow">منتظر کالیبراسیون</div>
+        <p class="muted" id="reason">—</p>
+        <div class="kpis">
+          <div class="kpi"><span>شباهت مرجع حاضر</span><strong id="dp">—</strong></div>
+          <div class="kpi"><span>شباهت مرجع خالی</span><strong id="de">—</strong></div>
+          <div class="kpi"><span>حاشیه اطمینان</span><strong id="margin">—</strong></div>
+          <div class="kpi"><span>زمان پردازش</span><strong id="ms">— ms</strong></div>
+        </div>
+        <p id="stable" class="small">وضعیت پایدار هنوز تعیین نشده است.</p>
+      </div>
+      <div class="card">
+        <h2>وضعیت کالیبراسیون جایگاه‌ها</h2>
+        <ul id="zoneStatus"><li>در حال دریافت...</li></ul>
+      </div>
+      <div class="card">
+        <h2>رویدادهای آزمایشی</h2>
+        <ul id="events"><li>هنوز رویدادی ثبت نشده است.</li></ul>
+      </div>
+      <div class="card">
+        <h2>راهنمای وضعیت‌ها</h2>
+        <p class="small"><b class="green">PRESENT</b>: محصول در جایگاه حاضر است<br><b class="red">ABSENT</b>: محصول از جایگاه برداشته شده<br><b class="yellow">UNKNOWN</b>: تطبیق نامطمئن، نور یا زاویه نامناسب</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script src="/config.js"></script>
+<script src="/assets/js/api.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+let adminToken = sessionStorage.getItem("smartshelf_admin_token") || "";
+let authorized = false;
+let presentData = null, emptyData = null, emptyBitmap = null, roi = null;
+let remoteFrameBlob = null, remoteFrameUrl = null, remoteTimer = null, loopTimer = null;
+let testPhotoData = null, testPhotoBitmap = null, videoUrl = null, mode = "none";
+let guideOn = false, busy = false, previousState = "", stableCount = 0, stableState = null;
+let pointerStart = null;
+
+function apiUrl(path) {
+  return window.SmartShelfApi ? window.SmartShelfApi.apiUrl(path) : path;
+}
+function authHeaders(extra = {}) {
+  const headers = {...extra};
+  if (adminToken) {
+    headers.Authorization = "Bearer " + adminToken;
+    headers["X-Admin-Token"] = adminToken;
+  }
+  return headers;
+}
+function parentMessage(type, data = {}) {
+  if (window.parent !== window) window.parent.postMessage({type, ...data}, location.origin);
+}
+async function acceptAdminToken(token) {
+  if (!token) return;
+  adminToken = token;
+  try {
+    const res = await fetch(apiUrl("/api/admin/auth/check"), {headers: authHeaders(), cache:"no-store"});
+    if (!res.ok) {
+      $("adminGate").textContent = "نشست مدیر معتبر نیست؛ دوباره وارد پنل مدیریت شوید.";
+      parentMessage("SMARTSHELF_AUTH_EXPIRED");
+      return;
+    }
+    authorized = true;
+    document.body.classList.add("admin-ready");
+    $("adminGate").style.display = "none";
+    $("health").textContent = "اتصال به موتور برقرار است";
+    await loadZones();
+  } catch (err) {
+    $("adminGate").textContent = "بک‌اند در دسترس نیست. آدرس سرور را در تنظیمات پنل بررسی کنید.";
+  }
+}
+window.addEventListener("message", (event) => {
+  if (event.origin !== location.origin || event.source !== window.parent) return;
+  const data = event.data || {};
+  if (data.type === "SMARTSHELF_ADMIN_AUTH" && data.token) acceptAdminToken(data.token);
+  if (data.type === "SMARTSHELF_PRESENCE_STOP") stopAll();
+});
+const initialToken = sessionStorage.getItem("smartshelf_admin_token");
+if (initialToken) acceptAdminToken(initialToken);
+
+async function api(path, options = {}) {
+  const res = await fetch(apiUrl(path), {
+    ...options,
+    cache: options.cache || "no-store",
+    headers: authHeaders(options.headers || {})
+  });
+  const data = (res.headers.get("content-type") || "").includes("application/json")
+    ? await res.json().catch(() => ({})) : null;
+  if (!res.ok) throw new Error(data?.detail || data?.error || `HTTP ${res.status}`);
+  return data;
+}
+function setStatus(state, reason = "") {
+  const labels = {
+    PRESENT: ["محصول حاضر است", "green"],
+    ABSENT: ["محصول برداشته شده", "red"],
+    UNKNOWN: ["وضعیت نامشخص", "yellow"]
+  };
+  const item = labels[state] || labels.UNKNOWN;
+  $("state").textContent = item[0];
+  $("state").className = "status " + item[1];
+  $("reason").textContent = reason || "—";
+}
+function log(message) {
+  const list = $("events");
+  if (list.firstElementChild?.textContent === "هنوز رویدادی ثبت نشده است.") list.innerHTML = "";
+  const li = document.createElement("li");
+  li.textContent = new Date().toLocaleTimeString("fa-IR") + " — " + message;
+  list.prepend(li);
+}
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+async function fileToBase64(file) {
+  if (!file) throw new Error("فایل انتخاب نشده است");
+  if (file.size > 4 * 1024 * 1024) throw new Error("حجم تصویر باید کمتر از ۴ مگابایت باشد");
+  return blobToBase64(file);
+}
+async function bitmapFromBase64(value) {
+  const blob = await fetch("data:image/jpeg;base64," + value).then(r => r.blob());
+  return createImageBitmap(blob);
+}
+async function setReference(type, value) {
+  if (type === "present") presentData = value;
+  else {
+    emptyData = value;
+    if (emptyBitmap) emptyBitmap.close();
+    emptyBitmap = await bitmapFromBase64(value);
+    $("refPreview").style.display = "block";
+    drawRoi();
+  }
+  $("calMessage").textContent = type === "present" ? "مرجع محصول حاضر آماده است." : "مرجع جایگاه خالی آماده است؛ در صورت نیاز ROI را مشخص کنید.";
+}
+$("presentFile").addEventListener("change", async (e) => {
+  try { await setReference("present", await fileToBase64(e.target.files[0])); }
+  catch (err) { $("calMessage").textContent = err.message; }
+});
+$("emptyFile").addEventListener("change", async (e) => {
+  try { await setReference("empty", await fileToBase64(e.target.files[0])); }
+  catch (err) { $("calMessage").textContent = err.message; }
+});
+
+function drawRoi() {
+  if (!emptyBitmap) return;
+  const canvas = $("roiCanvas");
+  const scale = Math.min(1, 1000 / Math.max(emptyBitmap.width, emptyBitmap.height));
+  canvas.width = Math.round(emptyBitmap.width * scale);
+  canvas.height = Math.round(emptyBitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(emptyBitmap, 0, 0, canvas.width, canvas.height);
+  if (roi) {
+    ctx.strokeStyle = "#ffb44d";
+    ctx.lineWidth = Math.max(2, canvas.width / 240);
+    ctx.strokeRect(roi[0] * canvas.width, roi[1] * canvas.height, roi[2] * canvas.width, roi[3] * canvas.height);
+  }
+}
+function canvasPoint(event) {
+  const rect = $("roiCanvas").getBoundingClientRect();
+  return [
+    Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
+    Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height))
+  ];
+}
+$("roiCanvas").addEventListener("pointerdown", (event) => {
+  pointerStart = canvasPoint(event);
+  $("roiCanvas").setPointerCapture(event.pointerId);
+});
+$("roiCanvas").addEventListener("pointerup", (event) => {
+  if (!pointerStart) return;
+  const end = canvasPoint(event);
+  const x = Math.min(pointerStart[0], end[0]), y = Math.min(pointerStart[1], end[1]);
+  const w = Math.abs(end[0] - pointerStart[0]), h = Math.abs(end[1] - pointerStart[1]);
+  pointerStart = null;
+  if (w < .04 || h < .04) return;
+  roi = [x, y, w, h].map(v => Number(v.toFixed(4)));
+  drawRoi();
+  $("calMessage").textContent = "محدوده ROI انتخاب شد؛ پس از کالیبراسیون در دیتابیس ذخیره می‌شود.";
+});
+$("fullFrame").onclick = () => { roi = null; drawRoi(); $("calMessage").textContent = "کل تصویر به‌عنوان محدوده استفاده می‌شود."; };
+
+async function fetchRemoteFrame() {
+  const res = await fetch(apiUrl("/api/admin/camera/latest-frame?raw=true"), {
+    headers: authHeaders(), cache:"no-store"
+  });
+  if (res.status === 204) throw new Error("هنوز فریمی از دوربین تبلت دریافت نشده است.");
+  if (!res.ok) throw new Error(`دریافت فریم دوربین ناموفق بود: HTTP ${res.status}`);
+  const blob = await res.blob();
+  if (!blob.type.startsWith("image/")) throw new Error("پاسخ دوربین تصویر معتبر نیست");
+  remoteFrameBlob = blob;
+  if (mode === "none" || mode === "remote") mode = "remote";
+  if (remoteFrameUrl) URL.revokeObjectURL(remoteFrameUrl);
+  remoteFrameUrl = URL.createObjectURL(blob);
+  $("feedImage").src = remoteFrameUrl;
+  $("feedImage").style.display = "block";
+  $("placeholder").style.display = "none";
+  $("guideImage").style.display = guideOn ? "block" : "none";
+  return blob;
+}
+$("startCamera").onclick = async () => {
+  try {
+    await fetchRemoteFrame();
+    if (remoteTimer) clearInterval(remoteTimer);
+    remoteTimer = setInterval(() => fetchRemoteFrame().catch(err => {
+      $("health").textContent = "دوربین تبلت قطع است";
+      $("reason").textContent = err.message;
+    }), 1200);
+    $("health").textContent = "دوربین تبلت آنلاین";
+  } catch (err) {
+    $("health").textContent = "دوربین تبلت در دسترس نیست";
+    $("reason").textContent = err.message;
+  }
+};
+async function stopRemoteCamera() {
+  if (remoteTimer) clearInterval(remoteTimer);
+  remoteTimer = null;
+  remoteFrameBlob = null;
+  if (remoteFrameUrl) URL.revokeObjectURL(remoteFrameUrl);
+  remoteFrameUrl = null;
+  $("feedImage").removeAttribute("src");
+  $("feedImage").style.display = "none";
+  if (mode === "remote") mode = "none";
+  $("placeholder").style.display = "block";
+  $("guideImage").style.display = "none";
+}
+$("stopCamera").onclick = stopRemoteCamera;
+$("guideBtn").onclick = () => {
+  if (!emptyData) { $("reason").textContent = "ابتدا مرجع جایگاه خالی را ثبت کنید."; return; }
+  guideOn = !guideOn;
+  $("guideImage").src = "data:image/jpeg;base64," + emptyData;
+  $("guideImage").style.display = guideOn ? "block" : "none";
+  $("guideBtn").textContent = "راهنمای تراز: " + (guideOn ? "روشن" : "خاموش");
+};
+
+async function captureReference(type) {
+  const blob = await fetchRemoteFrame();
+  const value = await blobToBase64(blob);
+  await setReference(type, value);
+  log(type === "present" ? "تصویر مرجع محصول حاضر از تبلت ثبت شد" : "تصویر مرجع جایگاه خالی از تبلت ثبت شد");
+}
+$("capturePresent").onclick = () => captureReference("present").catch(err => $("calMessage").textContent = err.message);
+$("captureEmpty").onclick = () => captureReference("empty").catch(err => $("calMessage").textContent = err.message);
+
+$("calibrate").onclick = async () => {
+  if (!presentData || !emptyData) { $("calMessage").textContent = "هر دو تصویر مرجع لازم است."; return; }
+  const zoneId = Number($("zoneSelect").value);
+  if (!zoneId) { $("calMessage").textContent = "ابتدا جایگاه را انتخاب کنید."; return; }
+  $("calibrate").disabled = true;
+  $("calMessage").textContent = "در حال استخراج ویژگی‌ها و ذخیره کالیبراسیون...";
+  try {
+    const result = await api("/api/presence", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({mode:"calibrate",zone_id:zoneId,present:presentData,empty:emptyData,roi})
+    });
+    stableState = null; stableCount = 0; previousState = "";
+    setStatus("UNKNOWN", result.message || "کالیبراسیون ذخیره شد.");
+    $("calMessage").textContent = `ذخیره شد · جدایی مرجع‌ها: ${result.separation} · نقاط هم‌ترازی: ${result.inliers}`;
+    log("کالیبراسیون جایگاه " + zoneId + " ذخیره شد");
+    await loadZones();
+  } catch (err) {
+    $("calMessage").textContent = "کالیبراسیون ناموفق: " + err.message;
+  } finally { $("calibrate").disabled = false; }
+};
+$("clearCalibration").onclick = async () => {
+  const zoneId = Number($("zoneSelect").value);
+  if (!zoneId) return;
+  if (!confirm("کالیبراسیون این جایگاه پاک شود؟")) return;
+  try {
+    await api("/api/presence", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"clear",zone_id:zoneId})});
+    stableState = null; stableCount = 0; previousState = "";
+    setStatus("UNKNOWN","کالیبراسیون پاک شد.");
+    $("calMessage").textContent = "مرجع‌های ذخیره‌شده این جایگاه حذف شدند.";
+    await loadZones();
+  } catch (err) { $("calMessage").textContent = err.message; }
+};
+
+async function loadZones() {
+  const data = await api("/api/presence");
+  const select = $("zoneSelect");
+  const old = select.value;
+  select.innerHTML = "";
+  for (const zone of data.zones || []) {
+    const opt = document.createElement("option");
+    opt.value = zone.id;
+    opt.textContent = zone.name + (zone.calibrated ? " · کالیبره‌شده" : " · نیازمند کالیبراسیون");
+    select.appendChild(opt);
+  }
+  if (old && [...select.options].some(o => o.value === old)) select.value = old;
+  $("zoneStatus").innerHTML = "";
+  for (const zone of data.zones || []) {
+    const li = document.createElement("li");
+    li.textContent = `${zone.name} — ${zone.calibrated ? "کالیبره‌شده" : "بدون مرجع دوگانه"} — ${zone.state || "UNKNOWN"}`;
+    $("zoneStatus").appendChild(li);
+  }
+  if (!(data.zones || []).length) $("zoneStatus").innerHTML = "<li>هیچ جایگاهی تعریف نشده است.</li>";
+}
+$("zoneSelect").addEventListener("change", () => {
+  stableState = null; stableCount = 0; previousState = "";
+  setStatus("UNKNOWN","جایگاه تغییر کرد؛ وضعیت را از فریم زنده بررسی کنید.");
+});
+
+async function currentFrameBase64() {
+  if (mode === "photo" && testPhotoData) return testPhotoData;
+  if (mode === "video") {
+    const video = $("videoFeed");
+    if (!video.videoWidth || !video.videoHeight) throw new Error("ویدیو آماده نیست.");
+    const canvas = document.createElement("canvas");
+    const scale = Math.min(1, 900 / Math.max(video.videoWidth, video.videoHeight));
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
+    canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
+    return canvas.toDataURL("image/jpeg",.82).split(",")[1];
+  }
+  const blob = remoteFrameBlob || await fetchRemoteFrame();
+  return blobToBase64(blob);
+}
+async function checkFrame() {
+  if (busy) return;
+  const zoneId = Number($("zoneSelect").value);
+  if (!zoneId) { setStatus("UNKNOWN","جایگاه انتخاب نشده است."); return; }
+  busy = true; $("checkFrame").disabled = true;
+  try {
+    const frame = await currentFrameBase64();
+    const result = await api("/api/presence", {
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({mode:"detect",zone_id:zoneId,frame})
+    });
+    setStatus(result.state, result.reason);
+    $("dp").textContent = result.diagnostics?.present_score ?? "—";
+    $("de").textContent = result.diagnostics?.empty_score ?? "—";
+    $("margin").textContent = result.diagnostics?.margin ?? "—";
+    $("ms").textContent = result.elapsed_ms ?? "—";
+    if (result.state === "UNKNOWN") {
+      previousState = ""; stableCount = 0;
+    } else {
+      stableCount = previousState === result.state ? stableCount + 1 : 1;
+      previousState = result.state;
+      if (stableCount >= 3 && stableState !== result.state) {
+        const old = stableState;
+        stableState = result.state;
+        if (old === null) log("وضعیت مبنا: " + result.state);
+        else if (old === "PRESENT" && result.state === "ABSENT") log("تشخیص آزمایشی برداشت محصول");
+        else if (old === "ABSENT" && result.state === "PRESENT") log("تشخیص آزمایشی بازگرداندن محصول");
+      }
+    }
+    $("stable").textContent = `توالی پایدار: ${stableCount} از ۳ · وضعیت ثبت‌شده: ${stableState || "هنوز تعیین نشده"}`;
+  } catch (err) {
+    setStatus("UNKNOWN",err.message);
+    previousState = ""; stableCount = 0;
+  } finally { busy = false; $("checkFrame").disabled = false; }
+}
+$("checkFrame").onclick = checkFrame;
+$("continuous").onclick = () => {
+  if (loopTimer) {
+    clearInterval(loopTimer); loopTimer = null;
+    $("continuous").textContent = "شروع بررسی پیوسته";
+    return;
+  }
+  if (!remoteFrameBlob && mode === "none") {
+    $("reason").textContent = "ابتدا اتصال به فریم زنده تبلت را برقرار کنید.";
+    return;
+  }
+  loopTimer = setInterval(async () => {
+    try {
+      if (mode !== "photo" && mode !== "video") await fetchRemoteFrame();
+      await checkFrame();
+    } catch (err) { setStatus("UNKNOWN",err.message); }
+  },1600);
+  $("continuous").textContent = "توقف بررسی پیوسته";
+  checkFrame();
+};
+$("testPhoto").addEventListener("change",async e=>{
+  try {
+    testPhotoData=await fileToBase64(e.target.files[0]);
+    if(testPhotoBitmap)testPhotoBitmap.close();
+    testPhotoBitmap=await bitmapFromBase64(testPhotoData);
+    mode="photo";
+    $("reason").textContent="تصویر آزمایشی بارگذاری شد.";
+  } catch(err){$("reason").textContent=err.message;}
+});
+$("testVideo").addEventListener("change",e=>{
+  const file=e.target.files[0]; if(!file)return;
+  if(videoUrl)URL.revokeObjectURL(videoUrl);
+  videoUrl=URL.createObjectURL(file);
+  $("videoFeed").src=videoUrl;
+  $("videoFeed").style.display="block";
+  $("videoFeed").play().catch(()=>{});
+  mode="video";
+});
+async function stopAll() {
+  if(loopTimer)clearInterval(loopTimer);
+  loopTimer=null;
+  $("continuous").textContent="شروع بررسی پیوسته";
+  await stopRemoteCamera();
+  if(videoUrl)URL.revokeObjectURL(videoUrl);
+  videoUrl=null;
+  if(testPhotoBitmap)testPhotoBitmap.close();
+  testPhotoBitmap=null;
+}
+window.addEventListener("pagehide",stopAll);
+</script>
+</body>
+</html>

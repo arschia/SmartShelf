@@ -1,0 +1,35 @@
+{
+  "release": "1.4.1",
+  "date": "2026-11-05",
+  "backend": {
+    "tests": 160,
+    "passed": 160,
+    "failures": 0,
+    "errors": 0,
+    "environment": "Linux Python 3.12.14, in-memory test DB, kernel network denial"
+  },
+  "ui_harnesses": [
+    "test_bottle_ui.cjs",
+    "test_camera_startup.cjs",
+    "test_camera_transport_ui.cjs",
+    "test_entry_qr.cjs",
+    "test_pairing_ui.cjs",
+    "test_rtc_ui.cjs",
+    "test_shop_tablet_controls.cjs",
+    "test_shop_ui.cjs"
+  ],
+  "real_model_smoke": {
+    "source": "docs/LIVE_SHOP_MODEL_SMOKE.json",
+    "passed": true
+  },
+  "reference_checks": {
+    "images": 42,
+    "images_with_detection": 39,
+    "is_held_out_accuracy_benchmark": false
+  },
+  "owner_acceptance": {
+    "reported_working": true,
+    "date": "2026-11-05",
+    "not_a_measured_fps_benchmark": true
+  }
+}

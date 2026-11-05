@@ -1,0 +1,5 @@
+Backend pytest: [('150', '0', '0')] (tests, failures, errors)
+150 passed.
+UI: real shop handler updates stock/cart from WebSocket; simulator removed.
+Real ONNX -> HTTP frames -> SQLite -> customer WebSocket: PASS (see LIVE_SHOP_MODEL_SMOKE.json).
+Windows installation and physical tablet/customer phone acceptance are pending owner-run update.
