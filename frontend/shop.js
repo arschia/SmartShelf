@@ -133,7 +133,7 @@ function capture(){
   const c=document.createElement('canvas'),scale=Math.min(1,1280/Math.max(v.videoWidth,v.videoHeight));c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);c.getContext('2d').drawImage(v,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.86);
 }
 function updateFrameButtons(){
-  $('startCamera').disabled=working||controlBusy;
+  $('startCamera').disabled=working||controlBusy||scenarioBusy||!state?.enabled;
   $('startCamera').textContent=working?(framesConfirmed?'ارسال تصویر فعال است':'در حال بررسی ارسال…'):'شروع ارسال تصویر';
   $('stopCamera').disabled=controlBusy||(!working&&$('cameraSource').value!=='tablet');
 }
@@ -159,6 +159,7 @@ async function cameraStatus(signal){
 }
 async function startFrames(){
   if(working||controlBusy)return;
+  if(!state?.enabled){notice('ابتدا سناریو را فعال کنید.');return;}
   working=true;framesConfirmed=false;const epoch=++loopEpoch;updateFrameButtons();notice('');
   $('cameraStatus').textContent='در حال شروع ارسال تصویر…';
   const current=()=>working&&epoch===loopEpoch;
@@ -276,8 +277,8 @@ $('disable').onclick=async()=>{
     setScenarioBusy(false);
   }
 };
-$('loginForm').onsubmit=async event=>{event.preventDefault();try{const response=await fetch(SmartShelfApi.apiUrl('/api/admin/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:SmartShelfFormat.normalizeDigits($('pin').value.trim())})});const d=await response.json();if(!response.ok||!d.token)throw new Error(typeof d.detail==='string'?d.detail:'ورود ناموفق بود.');token=d.token;sessionStorage.setItem('smartshelf_admin_token',token);$('pin').value='';$('loginCard').hidden=true;await loadStatus(true);connect();notice('');}catch(e){notice(e.message);}};
+$('loginForm').onsubmit=async event=>{event.preventDefault();try{const response=await fetch(SmartShelfApi.apiUrl('/api/admin/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:SmartShelfFormat.normalizeDigits($('pin').value.trim())})});const d=await response.json();if(!response.ok||!d.token)throw new Error(typeof d.detail==='string'?d.detail:'ورود ناموفق بود.');token=d.token;sessionStorage.setItem('smartshelf_admin_token',token);$('pin').value='';$('loginCard').hidden=true;await loadStatus(true);connect();notice('');if(state?.enabled)startFrames();}catch(e){notice(e.message);}};
 freshTimer=setInterval(()=>{if(working&&state?.enabled&&Date.now()-lastShopUpdate>5000)$('cameraStatus').textContent='تصویر تازه نداریم؛ مقدار موجودی، آخرین مقدار ثبت‌شده است و نبودن تصویر خرید ایجاد نمی‌کند.';},2000);
 window.addEventListener('pagehide',()=>{stopVideoPreview();token='';stopFrames();clearInterval(freshTimer);clearTimeout(qrTimer);clearTimeout(reconnect);socket?.close();stream?.getTracks().forEach(t=>t.stop());});
 updateFrameButtons();
-if(token){loadStatus(true).then(connect).catch(e=>notice(e.message));}else $('loginCard').hidden=false;
+if(token){loadStatus(true).then(()=>{connect();if(state?.enabled)startFrames();}).catch(e=>notice(e.message));}else $('loginCard').hidden=false;
