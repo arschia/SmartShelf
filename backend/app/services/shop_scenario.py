@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import secrets
 import time
+import asyncio
 from typing import Optional
 
 import cv2
@@ -160,7 +161,8 @@ class ShopRuntime:
             event_status = "BASELINE" if baseline else "STOCK_ONLY"
             event_session = None
             if baseline:
-                # No retrospective purchases/returns inferred across outages/restarts.
+                # A pause/restart is not a purchase. Preserve the last confirmed
+                # inventory, and flag an actual change during the interruption.
                 if old_quantity is not None and old_quantity != quantity:
                     cfg.needs_review = True
                     event_status = "OFFLINE_CHANGE"
@@ -230,9 +232,19 @@ async def process_shop_frame(frame, db, source, sequence=None):
     if not zone:
         return {"accepted":False}
     try:
-        observation, confidence, detections = shop_runtime.classify(frame,cfg,zone)
+        # ONNX inference is CPU-bound and must not block stop/configure,
+        # WebSocket delivery or other frame requests on the event loop.
+        observation, confidence, detections = await asyncio.to_thread(
+            shop_runtime.classify, frame, cfg, zone
+        )
     except Exception:
         observation, confidence, detections = "UNKNOWN",0.,[]
+    # The scenario may have been stopped/reconfigured while inference ran.
+    # Never commit a stale detection to a newly started scenario.
+    db.expire_all()
+    latest = configuration(db)
+    if not latest or not latest.enabled or latest.generation != cfg.generation:
+        return {"accepted": False, "reason": "SCENARIO_CHANGED"}
     result = shop_runtime.observe(db,observation,confidence,source,sequence)
     if not result.get("accepted"):
         return result
