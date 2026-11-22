@@ -283,6 +283,30 @@ $('capture').onclick=async()=>{try{
 }catch(e){notice(e.message);}};
 $('stopVideo').onclick=stopVideoPreview;
 $('cameraSource').onchange=()=>{stopFrames();stopVideoPreview();fullReference=null;emptyReference=null;};
+$('referenceFull').onclick=()=>{try{
+  if(state?.enabled)throw Error('ابتدا سناریو را متوقف کنید.');
+  fullReference=capture();$('referenceStatus').textContent='تصویر مرجع بطری ثبت شد.';
+}catch(e){notice(e.message);}};
+$('referenceEmpty').onclick=()=>{try{
+  if(state?.enabled)throw Error('ابتدا سناریو را متوقف کنید.');
+  emptyReference=capture();$('referenceStatus').textContent='تصویر مرجع جایگاه خالی ثبت شد.';
+}catch(e){notice(e.message);}};
+$('referenceSave').onclick=async()=>{
+  if(state?.enabled){notice('ابتدا سناریو را متوقف کنید.');return;}
+  if(!fullReference||!emptyReference){notice('هر دو مرجع بطری و جایگاه خالی را ثبت کنید.');return;}
+  if(roi[2]<.05||roi[3]<.05){notice('کادر جایگاه خیلی کوچک است.');return;}
+  $('referenceSave').disabled=true;
+  try{
+    const d=await api('/api/presence',{method:'POST',body:JSON.stringify({
+      mode:'calibrate',zone_id:Number($('zone').value),present:fullReference,
+      empty:emptyReference,roi
+    })});
+    $('referenceStatus').textContent=d.message||'کالیبراسیون دو مرجعی ذخیره شد.';
+    $('roiConfirmed').checked=true;
+    notice('مرجع‌های بطری و جایگاه خالی ثبت شدند؛ حالا سناریو را فعال کنید.');
+  }catch(e){notice(e.message);}
+  finally{$('referenceSave').disabled=false;}
+};
 $('startCamera').onclick=startFrames;$('stopCamera').onclick=()=>stopFrames(true);
 function setScenarioBusy(busy){
   scenarioBusy=busy;
