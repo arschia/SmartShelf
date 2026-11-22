@@ -15,6 +15,7 @@ import cv2
 import numpy as np
 
 FEATURE_KIND = "two_reference_sift_ransac_v1"
+PIXEL_KIND = "two_reference_pixel_v1"
 MAX_FEATURES = 900
 MIN_FEATURES = 8
 MIN_INLIERS = 6
@@ -175,8 +176,11 @@ def calibrate_pair(present_image: np.ndarray, empty_image: np.ndarray, roi: Opti
     # Normalize both crops to the same dimensions to avoid accidental aspect mismatch.
     if present_crop.shape[:2] != empty_crop.shape[:2]:
         empty_crop = cv2.resize(empty_crop, (present_crop.shape[1], present_crop.shape[0]), interpolation=cv2.INTER_AREA)
-    full_ref = build_reference(present_crop)
-    empty_ref = build_reference(empty_crop)
+    try:
+        full_ref = build_reference(present_crop)
+        empty_ref = build_reference(empty_crop)
+    except PresenceFeatureError:
+        return _calibrate_pixel_fallback(present_image, empty_image, roi)
     # Estimate shared-scene overlap. Excessive overlap means the two references are
     # nearly identical; almost no overlap means the camera/scene changed too much.
     overlap = _match(full_ref, empty_crop)
@@ -185,7 +189,7 @@ def calibrate_pair(present_image: np.ndarray, empty_image: np.ndarray, roi: Opti
         raise PresenceFeatureError("دو مرجع تفاوت تصویری کافی ندارند؛ یک تصویر با محصول و دیگری بدون محصول بگیرید")
     if overlap["inliers"] < 4:
         # Very different backgrounds/camera positions are not a safe calibration pair.
-        raise PresenceFeatureError("دو مرجع هم‌ترازی کافی ندارند؛ زاویه و محیط دوربین را ثابت کنید")
+        return _calibrate_pixel_fallback(present_image, empty_image, roi)
     return full_ref, empty_ref, {
         "separation": separation,
         "inliers": overlap["inliers"],
@@ -194,8 +198,72 @@ def calibrate_pair(present_image: np.ndarray, empty_image: np.ndarray, roi: Opti
     }
 
 
+
+def _pixel_thumb(image):
+    image = cv2.resize(image, (96, 96), interpolation=cv2.INTER_AREA)
+    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    return cv2.GaussianBlur(lab, (5, 5), 0)
+
+
+def _pixel_reference(image):
+    return {"kind": PIXEL_KIND, "width": 96, "height": 96,
+            "pixels": _pack_array(_pixel_thumb(image))}
+
+
+def _pixel_distance(a, b):
+    return float(np.mean(np.abs(a.astype(np.float32) - b.astype(np.float32))))
+
+
+def _calibrate_pixel_fallback(present_image, empty_image, roi):
+    """Conservative local Windows fallback for white, featureless shelves."""
+    if roi is None or len(roi) != 4:
+        raise PresenceFeatureError("برای کالیبراسیون میز ساده، کادر دقیق بطری لازم است")
+    x, y, w, h = [float(v) for v in roi]
+    if w * h > .65:
+        raise PresenceFeatureError("کادر جایگاه خیلی بزرگ است؛ فقط دور یک بطری را انتخاب کنید")
+    present = cv2.resize(present_image, (320, 240), interpolation=cv2.INTER_AREA)
+    empty = cv2.resize(empty_image, (320, 240), interpolation=cv2.INTER_AREA)
+    mask = np.ones((240, 320), dtype=np.uint8)
+    x1, y1, x2, y2 = int(x*320), int(y*240), int((x+w)*320), int((y+h)*240)
+    mask[y1:y2, x1:x2] = 0
+    if np.count_nonzero(mask) < .25 * mask.size:
+        raise PresenceFeatureError("پس‌زمینه کافی برای تأیید ثابت بودن دوربین وجود ندارد")
+    outside = _pixel_distance(cv2.cvtColor(present, cv2.COLOR_BGR2LAB)[mask > 0],
+                              cv2.cvtColor(empty, cv2.COLOR_BGR2LAB)[mask > 0])
+    present_crop = crop_roi(present_image, roi)
+    empty_crop = crop_roi(empty_image, roi)
+    difference = _pixel_distance(_pixel_thumb(present_crop), _pixel_thumb(empty_crop))
+    if outside > 13 or difference < 9 or difference < outside * 2.4:
+        raise PresenceFeatureError("تصاویر مرجع متمایز نیستند یا دوربین جابه‌جا شده است؛ زاویه را ثابت و کادر را تنگ‌تر کنید")
+    return _pixel_reference(present_crop), _pixel_reference(empty_crop), {
+        "separation": round(difference, 2), "background_difference": round(outside, 2),
+        "algorithm": PIXEL_KIND,
+        "message": "کالیبراسیون میز کم‌بافت با مقایسه محافظه‌کارانه تصویر فعال شد."}
+
+
+def _classify_pixel(frame_roi, full_ref, empty_ref):
+    try:
+        full = _unpack_array(full_ref["pixels"], np.uint8, (96, 96, 3))
+        empty = _unpack_array(empty_ref["pixels"], np.uint8, (96, 96, 3))
+        current = _pixel_thumb(frame_roi)
+        separation = _pixel_distance(full, empty)
+        d_full = _pixel_distance(current, full)
+        d_empty = _pixel_distance(current, empty)
+        best, other = min(d_full, d_empty), max(d_full, d_empty)
+        if separation < 9 or best > max(7, .43 * separation) or other - best < .32 * separation:
+            return "UNKNOWN", 0.0, {"reason": "تصویر با هیچ مرجع ثابت تطبیق مطمئن ندارد"}
+        state = "PRESENT" if d_full < d_empty else "ABSENT"
+        confidence = min(.98, max(.65, 1 - best / max(separation, 1)))
+        return state, round(confidence, 3), {
+            "present_distance": round(d_full, 2), "empty_distance": round(d_empty, 2)}
+    except (PresenceFeatureError, KeyError, ValueError, cv2.error):
+        return "UNKNOWN", 0.0, {"reason": "مرجع تصویری معتبر نیست"}
+
+
 def classify_frame(frame_roi: np.ndarray, full_ref: dict, empty_ref: dict):
     """Return PRESENT/ABSENT only when one reference clearly wins; otherwise UNKNOWN."""
+    if full_ref.get("kind") == PIXEL_KIND and empty_ref.get("kind") == PIXEL_KIND:
+        return _classify_pixel(frame_roi, full_ref, empty_ref)
     try:
         full = _match(full_ref, frame_roi)
         empty = _match(empty_ref, frame_roi)
@@ -222,4 +290,4 @@ def classify_frame(frame_roi: np.ndarray, full_ref: dict, empty_ref: dict):
 
 
 def is_two_reference(reference: Optional[dict]) -> bool:
-    return isinstance(reference, dict) and reference.get("kind") == FEATURE_KIND
+    return isinstance(reference, dict) and reference.get("kind") in (FEATURE_KIND, PIXEL_KIND)
