@@ -6,7 +6,7 @@ let socket=null,reconnect=null,qrTimer=null,freshTimer=null,qrLoading=false,last
 let stream=null,preview=null,roi=[0,0,1,1],drag=null,working=false,loopEpoch=0,sequence=0;
 let lastShopUpdate=0,controller=null,tabletViewer=null,controlBusy=false,framesConfirmed=false,scenarioBusy=false;
 let previewAnimation=null,lastPreviewPaint=0;
-let fullReference=null,emptyReference=null,fallbackTimer=null,fallbackLoading=false,fallbackDeviceId=null;
+let fullReference=null,emptyReference=null,fallbackTimer=null,fallbackLoading=false,fallbackDeviceId=null,fallbackFrameAt=0;
 const streamId=crypto.randomUUID(),fa=n=>Number(n||0).toLocaleString('fa-IR');
 function notice(text){$('message').textContent=text;}
 async function api(path,options={}){
@@ -143,7 +143,8 @@ async function pollTabletJpeg(){
       const img=new Image();
       await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});
       if(!token||$('video').srcObject)return;
-      preview=img;canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;draw();
+      preview=img;fallbackFrameAt=Date.now();
+      canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;draw();
     }finally{URL.revokeObjectURL(url);}
   }catch(error){$('videoStatus').textContent='پیش‌نمایش JPEG موقتاً در دسترس نیست؛ ارسال هوش مصنوعی مستقل است.';}
   finally{fallbackLoading=false;}
@@ -166,7 +167,8 @@ function capture(){
   const source=live?v:preview;
   const width=live?v.videoWidth:preview?.naturalWidth;
   const height=live?v.videoHeight:preview?.naturalHeight;
-  if(!source||!width||!height)throw new Error('هنوز فریم تازه برای کالیبراسیون دریافت نشده است.');
+  if(!source||!width||!height||(!live&&Date.now()-fallbackFrameAt>3500))
+    throw new Error('هنوز فریم تازه برای کالیبراسیون دریافت نشده است.');
   const c=document.createElement('canvas'),scale=Math.min(1,1280/Math.max(width,height));
   c.width=Math.round(width*scale);c.height=Math.round(height*scale);
   c.getContext('2d').drawImage(source,0,0,c.width,c.height);
@@ -317,6 +319,8 @@ $('referenceSave').onclick=async()=>{
     })});
     $('referenceStatus').textContent=d.message||'کالیبراسیون دو مرجعی ذخیره شد.';
     $('roiConfirmed').checked=true;
+    const selected=zones.find(z=>z.id===Number($('zone').value));
+    if(selected){selected.roi=[...roi];selected.calibrated=true;}
     notice('مرجع‌های بطری و جایگاه خالی ثبت شدند؛ حالا سناریو را فعال کنید.');
   }catch(e){notice(e.message);}
   finally{$('referenceSave').disabled=false;}
