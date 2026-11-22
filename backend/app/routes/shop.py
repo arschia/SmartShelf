@@ -85,8 +85,12 @@ async def stream_control(payload: StreamControl, db: Session = Depends(get_db)):
     cfg = configuration(db)
     if payload.enabled and (not cfg or not cfg.enabled or cfg.camera_source != "tablet"):
         raise HTTPException(409, "ابتدا سناریوی تبلت را فعال کنید.")
-    return {"command_sent": await control_tablet_frames(payload.enabled),
-            "enabled": payload.enabled, "device_id": camera_feed.active_device_id}
+    from .camera_transport import latest_camera_control_device
+    command_sent = await control_tablet_frames(payload.enabled)
+    return {"command_sent": command_sent,
+            "enabled": payload.enabled,
+            "device_id": (camera_feed.active_device_id if camera_feed.is_active(timeout_seconds=10)
+                          else latest_camera_control_device() or camera_feed.active_device_id)}
 
 
 @router.post("/configure")
