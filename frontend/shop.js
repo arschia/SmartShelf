@@ -179,9 +179,9 @@ async function stopFrames(remote=false){
   if(remote&&$('cameraSource').value==='tablet'){
     controlBusy=true;updateFrameButtons();
     try{
-      if(!tabletViewer?.active)throw new Error('اتصال کنترل تبلت برقرار نیست؛ توقف از تبلت تأیید نشده است.');
-      await tabletViewer.setProcessing(false);
-      $('cameraStatus').textContent='تبلت توقف ارسال فریم هوش مصنوعی را تأیید کرد؛ ویدیوی زنده ادامه دارد.';
+      await api('/api/shop/stream',{method:'POST',body:JSON.stringify({enabled:false})});
+      if(tabletViewer?.active)await tabletViewer.setProcessing(false);
+      $('cameraStatus').textContent='فرمان توقف به سرور ارسال شد؛ ویدیوی زنده می‌تواند ادامه یابد.';
     }catch(error){$('cameraStatus').textContent='توقف ارسال از تبلت تأیید نشد.';notice(error.message);}
     finally{controlBusy=false;updateFrameButtons();}
   }
@@ -201,9 +201,18 @@ async function startFrames(){
   const current=()=>working&&epoch===loopEpoch;
   try{
     if($('cameraSource').value==='tablet'){
-      await showTabletVideo();if(!current())return;
-      $('cameraStatus').textContent='در حال فرستادن فرمان شروع به تبلت…';
-      await tabletViewer.setProcessing(true,current);if(!current())return;
+      // AI JPEG upload is independent of WebRTC preview.
+      try{
+        await showTabletVideo();if(!current())return;
+        await tabletViewer.setProcessing(true,current);if(!current())return;
+      }catch(error){
+        if(!current())return;
+        startTabletJpegPreview();
+        $('videoStatus').textContent='WebRTC برقرار نشد؛ پیش‌نمایش جایگزین JPEG فعال است.';
+      }
+      const control=await api('/api/shop/stream',{method:'POST',body:JSON.stringify({enabled:true})});
+      fallbackDeviceId=control.device_id;
+      if(!current())return;
       let lastCount=null,lastDevice=null,lastProgress=Date.now();
       $('cameraStatus').textContent='تبلت فرمان شروع را تأیید کرد؛ منتظر رسیدن فریم تازه به سرور…';
       while(current()){
@@ -213,7 +222,8 @@ async function startFrames(){
           const stats=await cameraStatus(controller.signal);if(!current())break;
           const d=await api('/api/shop/status',{signal:controller.signal});if(!current())break;
           render(d.shop);
-          const sameDevice=stats.device_id===tabletViewer?.deviceId;
+          const expectedDevice=tabletViewer?.active?tabletViewer.deviceId:fallbackDeviceId;
+          const sameDevice=Boolean(expectedDevice&&stats.device_id===expectedDevice);
           const advanced=sameDevice&&stats.is_live&&lastDevice===stats.device_id&&lastCount!==null&&stats.frame_count>lastCount;
           if(advanced){lastProgress=Date.now();framesConfirmed=true;}
           if(!sameDevice||!stats.is_live||Date.now()-lastProgress>=4000)framesConfirmed=false;
@@ -255,10 +265,24 @@ canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=point(e);roi=[
 canvas.addEventListener('pointerup',()=>{if(drag){drag=null;$('roiConfirmed').checked=false;}});
 canvas.addEventListener('pointercancel',()=>{drag=null;});
 $('product').onchange=()=>{$('price').value=String(products.find(p=>p.id===Number($('product').value))?.unit_price||0);};
-$('openCamera').onclick=async()=>{try{if($('cameraSource').value==='tablet')await showTabletVideo();else await openCamera();notice('');}catch(e){notice(e.message);}};
-$('capture').onclick=async()=>{try{if($('cameraSource').value==='tablet'){if(!tabletViewer?.active||$('video').readyState<2)throw new Error('ابتدا «نمایش دوربین» را بزنید و منتظر ویدیوی زنده بمانید.');await showImage(capture());}else{await openCamera();await showImage(capture());}notice('اکنون دور جایگاه بطری روی میز کادر بکشید.');}catch(e){notice(e.message);}};
+$('openCamera').onclick=async()=>{
+  try{
+    if($('cameraSource').value==='tablet'){
+      try{await showTabletVideo();}
+      catch(error){startTabletJpegPreview();notice('WebRTC در دسترس نیست؛ پیش‌نمایش جایگزین JPEG فعال شد.');return;}
+    }else await openCamera();
+    notice('');
+  }catch(e){notice(e.message);}
+};
+$('capture').onclick=async()=>{try{
+  if($('cameraSource').value==='tablet'){
+    if(!preview&&!$('video').srcObject)startTabletJpegPreview();
+    await showImage(capture());
+  }else{await openCamera();await showImage(capture());}
+  notice('اکنون دور جایگاه بطری روی میز کادر بکشید.');
+}catch(e){notice(e.message);}};
 $('stopVideo').onclick=stopVideoPreview;
-$('cameraSource').onchange=()=>{stopFrames();stopVideoPreview();};
+$('cameraSource').onchange=()=>{stopFrames();stopVideoPreview();fullReference=null;emptyReference=null;};
 $('startCamera').onclick=startFrames;$('stopCamera').onclick=()=>stopFrames(true);
 function setScenarioBusy(busy){
   scenarioBusy=busy;
