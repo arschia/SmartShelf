@@ -1,7 +1,7 @@
 /* Live university store: every cart/stock decision belongs to the server. */
 'use strict';
 const $=id=>document.getElementById(id), canvas=$('canvas'), ctx=canvas.getContext('2d');
-let token=sessionStorage.getItem('smartshelf_admin_token')||'',state=null,products=[];
+let token=sessionStorage.getItem('smartshelf_admin_token')||'',state=null,products=[],zones=[];
 let socket=null,reconnect=null,qrTimer=null,freshTimer=null,qrLoading=false,lastEntryKey=null;
 let stream=null,preview=null,roi=[0,0,1,1],drag=null,working=false,loopEpoch=0,sequence=0;
 let lastShopUpdate=0,controller=null,tabletViewer=null,controlBusy=false,framesConfirmed=false,scenarioBusy=false;
@@ -38,12 +38,16 @@ function render(shop){
   updateFrameButtons();draw();
 }
 async function loadStatus(initial=false){
-  const d=await api('/api/shop/status');products=d.products;
+  const d=await api('/api/shop/status');products=d.products;zones=d.zones||[];
   if(initial){for(const [id,items] of [['product',d.products],['zone',d.zones]]){$(id).replaceChildren();for(const item of items){const option=document.createElement('option');option.value=String(item.id);option.textContent=item.name;$(id).appendChild(option);}}
     if(d.shop.product_id)$('product').value=String(d.shop.product_id);
     if(d.shop.zone_id)$('zone').value=String(d.shop.zone_id);
     $('price').value=String(products.find(p=>p.id===Number($('product').value))?.unit_price||0);
-    $('cameraSource').value=d.shop.camera_source;roi=d.shop.roi;$('roiConfirmed').checked=d.shop.enabled;
+    $('cameraSource').value=d.shop.camera_source;
+    const selected=zones.find(z=>z.id===Number($('zone').value));
+    roi=selected?.roi||d.shop.roi;
+    $('roiConfirmed').checked=d.shop.enabled||Boolean(selected?.calibrated);
+    draw();
   }
   render(d.shop);
 }
@@ -265,6 +269,16 @@ canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=point(e);roi=[
 canvas.addEventListener('pointerup',()=>{if(drag){drag=null;$('roiConfirmed').checked=false;}});
 canvas.addEventListener('pointercancel',()=>{drag=null;});
 $('product').onchange=()=>{$('price').value=String(products.find(p=>p.id===Number($('product').value))?.unit_price||0);};
+$('zone').onchange=()=>{
+  const selected=zones.find(z=>z.id===Number($('zone').value));
+  roi=selected?.roi||[0,0,1,1];
+  fullReference=null;emptyReference=null;
+  $('roiConfirmed').checked=Boolean(selected?.calibrated);
+  $('referenceStatus').textContent=selected?.calibrated
+    ? 'این جایگاه قبلاً کالیبره شده است؛ برای تغییر کادر دوباره مرجع بگیرید.'
+    : 'این جایگاه هنوز دو مرجع ندارد؛ برای میز سفید کالیبره کنید.';
+  draw();
+};
 $('openCamera').onclick=async()=>{
   try{
     if($('cameraSource').value==='tablet'){
