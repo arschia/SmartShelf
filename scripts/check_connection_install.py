@@ -19,8 +19,8 @@ def main():
         print('PAIRING SIGNATURE CHECK FAILED');return 1
     print('CONNECTION UPDATE READY')
     print('Start/restart START-SMARTSHELF.bat, refresh the tablet page, and pair once with a NEW camera code.')
-    print('Customer entry: https://shelf-ir.vercel.app/ -> Customer entry -> Scan QR or enter the code above QR.')
-    print('Activate/configure the university scenario at https://shelf-ir.vercel.app/shop')
+    print('Customer entry: https://frontend-rho-nine-46.vercel.app/ -> Customer entry -> Scan QR or enter the code above QR.')
+    print('Activate/configure the university scenario at https://frontend-rho-nine-46.vercel.app/shop')
     return 0
 
 

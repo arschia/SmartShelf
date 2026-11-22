@@ -210,11 +210,11 @@ def check_backend_runtime_config() -> bool:
     except ValueError:
         print("  [FAIL] TOKEN_TTL_SECONDS must be between 60 and 86400.")
         failed = True
-    if frontend != "https://shelf-ir.vercel.app":
-        print("  [FAIL] FRONTEND_PUBLIC_URL must be https://shelf-ir.vercel.app.")
+    if frontend != "https://frontend-rho-nine-46.vercel.app":
+        print("  [FAIL] FRONTEND_PUBLIC_URL must be https://frontend-rho-nine-46.vercel.app.")
         failed = True
-    if "https://shelf-ir.vercel.app" not in origins:
-        print("  [FAIL] ALLOWED_ORIGINS must include https://shelf-ir.vercel.app.")
+    if "https://frontend-rho-nine-46.vercel.app" not in origins:
+        print("  [FAIL] ALLOWED_ORIGINS must include https://frontend-rho-nine-46.vercel.app.")
         failed = True
     if not backend.startswith("https://") or "localhost" in backend or ".example" in backend:
         print("  [FAIL] PUBLIC_BASE_URL must be the actual HTTPS tunnel URL for FastAPI.")

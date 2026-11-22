@@ -35,8 +35,8 @@ def test_predeploy_check_script_passes(tmp_path):
     (root / '.env').write_text('\n'.join([
         'APP_ENV=production', 'ADMIN_PIN=TestDeploymentPin-2026',
         'SECRET_KEY=test-only-deployment-secret-not-for-production-2026',
-        'FRONTEND_PUBLIC_URL=https://shelf-ir.vercel.app',
-        'ALLOWED_ORIGINS=https://shelf-ir.vercel.app',
+        'FRONTEND_PUBLIC_URL=https://frontend-rho-nine-46.vercel.app',
+        'ALLOWED_ORIGINS=https://frontend-rho-nine-46.vercel.app',
         'STORE_OPEN=false', f'PUBLIC_BASE_URL={backend}',
     ]), encoding='utf-8')
     (root / 'frontend' / 'config.js').write_text(

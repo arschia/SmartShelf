@@ -66,7 +66,7 @@ def collect_report(root=ROOT, offline=False):
             versions[name] = metadata.version(name)
         except metadata.PackageNotFoundError:
             versions[name] = 'MISSING'
-    frontend = 'https://shelf-ir.vercel.app'
+    frontend = 'https://frontend-rho-nine-46.vercel.app'
     backend = None
     try:
         candidate = https_origin(values.get('PUBLIC_BASE_URL', ''))

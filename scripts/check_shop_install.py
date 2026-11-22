@@ -23,7 +23,7 @@ def main():
         print('Model:',status['model'])
         print('Now start/restart START-SMARTSHELF.bat.')
         print('Startup automatically backs up and updates the SQLite schema.')
-        print('Open https://shelf-ir.vercel.app/shop and configure the university demo.')
+        print('Open https://frontend-rho-nine-46.vercel.app/shop and configure the university demo.')
         print('Existing PIN, Funnel URL and STORE_OPEN setting were not changed.')
         return 0
     except Exception as exc:

@@ -33,8 +33,8 @@ def main():
     if not env.exists():
         raise SystemExit(".env is missing; run scripts/prepare_windows_env.py first")
     set_env(env, "PUBLIC_BASE_URL", url)
-    set_env(env, "FRONTEND_PUBLIC_URL", "https://shelf-ir.vercel.app")
-    set_env(env, "ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000,https://shelf-ir.vercel.app")
+    set_env(env, "FRONTEND_PUBLIC_URL", "https://frontend-rho-nine-46.vercel.app")
+    set_env(env, "ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000,https://frontend-rho-nine-46.vercel.app")
     set_env(env, "STORE_OPEN", "false")
     set_env(env, "TRUST_PROXY", "false")
     config = ROOT / "frontend" / "config.js"

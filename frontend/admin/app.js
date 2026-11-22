@@ -435,7 +435,9 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     localStorage.removeItem("smartshelf_admin_token");
     showAppScreen();
   } catch (err) {
-    errEl.textContent = "بک‌اند در دسترس نیست؛ آدرس سرور را در تنظیمات اتصال بررسی کنید.";
+    errEl.textContent = window.SmartShelfApi && !window.SmartShelfApi.getApiBase()
+      ? "آدرس بک‌اند ثبت نشده است. دکمهٔ تنظیم آدرس سرور را بزنید و آدرس HTTPS بک‌اند را وارد کنید."
+      : "ورود انجام نشد. از تنظیم آدرس سرور، اتصال به بک‌اند را بررسی کنید.";
     errEl.style.display = "block";
   }
 });
@@ -460,11 +462,9 @@ document.getElementById("themeToggleBtn")?.addEventListener("click", () => {
 });
 
 // Server Config Button handler
-document.getElementById("configServerBtn")?.addEventListener("click", () => {
-  if (window.SmartShelfApi) {
-    window.SmartShelfApi.showServerConfigModal();
-  }
-});
+for (const id of ["loginServerBtn", "configServerBtn"]) {
+  document.getElementById(id)?.addEventListener("click", () => window.SmartShelfApi.showServerConfigModal());
+}
 
 // Language Toggle
 document.getElementById("langToggleBtn").addEventListener("click", () => {

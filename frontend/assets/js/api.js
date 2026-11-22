@@ -197,7 +197,7 @@
         </p>
         <div style="margin-bottom: 1rem;">
           <label style="display: block; font-size: 0.82rem; margin-bottom: 0.35rem; color: #cbd5e1;">آدرس سرور (API Base URL):</label>
-          <input type="text" id="serverBaseInput" value="${currentBase}" dir="ltr"
+          <input type="text" id="serverBaseInput" dir="ltr"
                  style="width: 100%; box-sizing: border-box; background: #111a36; border: 1px solid #3a506b; border-radius: 6px; padding: 0.55rem; color: #fff; font-family: monospace; font-size: 0.9rem;">
         </div>
         <div id="serverHealthResult" style="padding: 0.6rem; border-radius: 6px; font-size: 0.82rem; margin-bottom: 1rem; background: #111a36; border: 1px solid #232f52;">
@@ -219,15 +219,16 @@
     const healthEl = modal.querySelector('#serverHealthResult');
     const inputEl = modal.querySelector('#serverBaseInput');
 
+    inputEl.value = currentBase;
     const runHealthCheck = async () => {
       healthEl.textContent = 'در حال بررسی اتصال به ' + (inputEl.value || currentBase) + '...';
       healthEl.style.color = '#94a3b8';
       const res = await checkServerHealth();
       if (res.online) {
-        healthEl.innerHTML = `🟢 <strong>سرور آنلاین است</strong> (وضعیت: ${res.status})`;
+        healthEl.textContent = `🟢 سرور آنلاین است (وضعیت: ${res.status})`;
         healthEl.style.color = '#10b981';
       } else {
-        healthEl.innerHTML = `🔴 <strong>عدم برقراری ارتباط با سرور</strong> (${res.status})`;
+        healthEl.textContent = `🔴 عدم برقراری ارتباط با سرور (${res.status})`;
         healthEl.style.color = '#ef4444';
       }
     };

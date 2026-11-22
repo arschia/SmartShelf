@@ -21,7 +21,7 @@ def main():
         print('CPU SELF-CHECK:',result['elapsed_ms'],'ms')
         print('This is a model load check, not an accuracy evaluation.')
         print('Restart backend: Ctrl+C in its old window, then START-SMARTSHELF.bat.')
-        print('Open https://shelf-ir.vercel.app/bottle (Ctrl+F5 if needed).')
+        print('Open https://frontend-rho-nine-46.vercel.app/bottle (Ctrl+F5 if needed).')
         return 0
     except Exception as exc:
         print('CHECK FAILED:',type(exc).__name__)

@@ -78,7 +78,7 @@ def collect_checks(base, frontend):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("backend_url", help="https://backend-hostname")
-    parser.add_argument("--frontend", default="https://shelf-ir.vercel.app")
+    parser.add_argument("--frontend", default="https://frontend-rho-nine-46.vercel.app")
     args = parser.parse_args()
     try:
         base = https_origin(args.backend_url)

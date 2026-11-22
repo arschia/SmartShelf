@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 BACKEND = 'https://your-device.your-tailnet.ts.net'
-FRONTEND = 'https://shelf-ir.vercel.app'
+FRONTEND = 'https://frontend-rho-nine-46.vercel.app'
 PREVIEW = 'https://shelf-np1iagre5-arschias-projects.vercel.app'
 
 
