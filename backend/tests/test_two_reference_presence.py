@@ -64,3 +64,28 @@ def test_calibration_rejects_identical_reference_images():
     present, _ = _scene()
     with pytest.raises(PresenceFeatureError):
         calibrate_pair(present, present.copy())
+
+
+def test_white_shelf_local_fallback_present_empty_and_ambiguous():
+    from backend.app.vision.two_reference import crop_roi, is_two_reference, PIXEL_KIND
+    empty = np.full((480, 640, 3), 225, dtype=np.uint8)
+    present = empty.copy()
+    roi = [.35, .35, .3, .5]
+    cv2.rectangle(present, (260, 205), (350, 370), (50, 90, 120), -1)
+    cv2.rectangle(present, (270, 220), (340, 310), (190, 190, 190), -1)
+    full_ref, empty_ref, info = calibrate_pair(present, empty, roi)
+    assert is_two_reference(full_ref) and is_two_reference(empty_ref)
+    assert full_ref["kind"] == PIXEL_KIND
+    assert classify_frame(crop_roi(present, roi), full_ref, empty_ref)[0] == "PRESENT"
+    assert classify_frame(crop_roi(empty, roi), full_ref, empty_ref)[0] == "ABSENT"
+    ambiguous = ((present.astype(np.float32) + empty.astype(np.float32))/2).astype(np.uint8)
+    assert classify_frame(crop_roi(ambiguous, roi), full_ref, empty_ref)[0] == "UNKNOWN"
+
+
+def test_white_shelf_rejects_moved_camera_during_calibration():
+    empty = np.full((480, 640, 3), 225, dtype=np.uint8)
+    present = empty.copy()
+    cv2.rectangle(present, (260, 205), (350, 370), (50, 90, 120), -1)
+    empty[:120, :] = (10, 30, 50)
+    with pytest.raises(PresenceFeatureError):
+        calibrate_pair(present, empty, [.35, .35, .3, .5])
