@@ -23,7 +23,8 @@ function render(shop){
   const states={PRESENT:'بطری در جایگاه است',ABSENT:'جایگاه خالی است',UNKNOWN:'در انتظار تثبیت تصویر',TRANSITION:'در حال بررسی تغییر'};
   $('slotState').textContent=states[shop.state]||shop.state;
   $('status').textContent=shop.needs_review?'تغییر در زمان قطع تصویر رخ داده است؛ سبد خودکار تغییر نکرد. سشن را بررسی و پایان دهید و سناریو را دوباره تنظیم کنید.':shop.enabled?'سناریوی دانشگاهی فعال است؛ تغییرات پس از تثبیت چند فریم ثبت می‌شوند.':'سناریو متوقف است؛ برای شروع، محصول و جایگاه را مشخص کنید.';
-  $('enable').disabled=Boolean(shop.session_id);$('cameraSource').disabled=shop.enabled;
+  // A paused scenario can be resumed with the same shelf even with an active customer.
+  $('enable').disabled=Boolean(shop.session_id&&shop.enabled);$('cameraSource').disabled=shop.enabled;
   if(shop.enabled){$('cameraSource').value=shop.camera_source;roi=shop.roi;}
   $('cart').replaceChildren();
   for(const item of shop.cart?.items||[]){const p=document.createElement('p');p.textContent=`${item.product_name} × ${fa(item.quantity)} — ${fa(item.line_total)} تومان`;$('cart').appendChild(p);}
@@ -121,11 +122,11 @@ async function stopFrames(remote=false){
   if(remote&&$('cameraSource').value==='tablet'){
     controlBusy=true;updateFrameButtons();
     try{
-      if(!tabletViewer?.active)throw new Error('ابتدا نمایش زندهٔ تبلت را باز کنید تا فرمان توقف به همان تبلت برسد.');
+      if(!tabletViewer?.active)throw new Error('اتصال کنترل تبلت برقرار نیست؛ توقف از تبلت تأیید نشده است.');
       await tabletViewer.setProcessing(false);
       $('cameraStatus').textContent='تبلت توقف ارسال فریم هوش مصنوعی را تأیید کرد؛ ویدیوی زنده ادامه دارد.';
     }catch(error){$('cameraStatus').textContent='توقف ارسال از تبلت تأیید نشد.';notice(error.message);}
-    finally{controlBusy=false;}
+    finally{controlBusy=false;updateFrameButtons();}
   }
   updateFrameButtons();
 }
@@ -173,7 +174,7 @@ async function startFrames(){
       return;
     }
     if(!state?.enabled||state.camera_source!=='browser')throw new Error('ابتدا محصول و جایگاه را مشخص و سناریوی دانشگاهی را برای دوربین همین دستگاه فعال کنید.');
-    await openCamera();if(!current())return;
+    await openCamera();if(!current()){stopVideoPreview();return;}
     while(current()){
       let timer=null;
       try{
@@ -188,6 +189,7 @@ async function startFrames(){
       if(current())await new Promise(resolve=>setTimeout(resolve,450));
     }
   }catch(error){if(current()){await stopFrames();$('cameraStatus').textContent='شروع ارسال تصویر تأیید نشد.';notice(error.message||'ارسال تصویر شروع نشد؛ وضعیت دوربین را بررسی کنید.');}}
+  finally { if(epoch===loopEpoch&&!working)updateFrameButtons(); }
 }
 function point(event){const r=canvas.getBoundingClientRect();return [Math.max(0,Math.min(1,(event.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(event.clientY-r.top)/r.height))];}
 canvas.addEventListener('pointerdown',e=>{if(state?.enabled||!preview)return;e.preventDefault();drag=point(e);canvas.setPointerCapture(e.pointerId);});
@@ -201,7 +203,17 @@ $('stopVideo').onclick=stopVideoPreview;
 $('cameraSource').onchange=()=>{stopFrames();stopVideoPreview();};
 $('startCamera').onclick=startFrames;$('stopCamera').onclick=()=>stopFrames(true);
 $('enable').onclick=async()=>{try{const price=Number(SmartShelfFormat.normalizeDigits($('price').value));if(!Number.isInteger(price)||price<0)throw new Error('قیمت نمایشی باید یک عدد صحیح نامنفی باشد.');const d=await api('/api/shop/configure',{method:'POST',body:JSON.stringify({enabled:true,product_id:Number($('product').value),zone_id:Number($('zone').value),unit_price:price,camera_source:$('cameraSource').value,roi,roi_confirmed:$('roiConfirmed').checked})});render(d.shop);notice('سناریو فعال شد. ارسال تصویر را شروع کنید؛ دیدن اولیهٔ بطری فقط موجودی را ثبت می‌کند.');}catch(e){notice(e.message);}};
-$('disable').onclick=async()=>{try{const d=await api('/api/shop/configure',{method:'POST',body:'{"enabled":false}'});stopFrames();render(d.shop);notice('سناریو و پذیرش مشتری متوقف شد.');}catch(e){notice(e.message);}};
+$('disable').onclick=async()=>{
+  // Invalidate the local loop immediately; never wait for inference to finish
+  // before letting the operator stop the camera.
+  stopFrames();
+  stopVideoPreview();
+  try{
+    const d=await api('/api/shop/configure',{method:'POST',body:'{"enabled":false}'});
+    render(d.shop);
+    notice('سناریو متوقف شد. سبد مشتری و موجودی برای شروع مجدد حفظ شده‌اند.');
+  }catch(e){notice(e.message);}
+};
 $('loginForm').onsubmit=async event=>{event.preventDefault();try{const response=await fetch(SmartShelfApi.apiUrl('/api/admin/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:SmartShelfFormat.normalizeDigits($('pin').value.trim())})});const d=await response.json();if(!response.ok||!d.token)throw new Error(typeof d.detail==='string'?d.detail:'ورود ناموفق بود.');token=d.token;sessionStorage.setItem('smartshelf_admin_token',token);$('pin').value='';$('loginCard').hidden=true;await loadStatus(true);connect();notice('');}catch(e){notice(e.message);}};
 freshTimer=setInterval(()=>{if(working&&state?.enabled&&Date.now()-lastShopUpdate>5000)$('cameraStatus').textContent='تصویر تازه نداریم؛ مقدار موجودی، آخرین مقدار ثبت‌شده است و نبودن تصویر خرید ایجاد نمی‌کند.';},2000);
 window.addEventListener('pagehide',()=>{stopVideoPreview();token='';stopFrames();clearInterval(freshTimer);clearTimeout(qrTimer);clearTimeout(reconnect);socket?.close();stream?.getTracks().forEach(t=>t.stop());});
