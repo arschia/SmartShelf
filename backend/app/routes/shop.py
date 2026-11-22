@@ -44,12 +44,17 @@ class StreamControl(BaseModel):
 
 async def control_tablet_frames(enabled: bool):
     """WSS control does not depend on a WebRTC preview connection."""
+    from .camera_transport import set_camera_control
     device_id = camera_feed.active_device_id
+    revision = set_camera_control(device_id, enabled)
     ws = manager.camera_connections.get(device_id) if device_id else None
     if not ws:
+        # HTTPS-only tablets poll /api/camera/control for the same revision.
         return False
     try:
-        await asyncio.wait_for(ws.send_json({"type": "vision_control", "enabled": enabled}), timeout=1.0)
+        await asyncio.wait_for(ws.send_json({
+            "type": "vision_control", "enabled": enabled, "revision": revision
+        }), timeout=1.0)
         return True
     except Exception:
         return False
