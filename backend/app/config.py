@@ -69,6 +69,10 @@ class Settings:
             f_url = self.FRONTEND_PUBLIC_URL.strip().rstrip("/")
             if f_url and f_url not in origins:
                 origins.append(f_url)
+        if self.PUBLIC_BASE_URL:
+            p_url = self.PUBLIC_BASE_URL.strip().rstrip("/")
+            if p_url and p_url not in origins:
+                origins.append(p_url)
         if not origins:
             return ["http://localhost:8000", "http://127.0.0.1:8000"]
         return origins

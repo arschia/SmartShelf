@@ -573,6 +573,36 @@ def serve_config_js():
     return Response(content='window.SMARTSHELF_CONFIG = { apiBase: "" };', media_type="application/javascript")
 
 
+@app.get("/admin", include_in_schema=False)
+@app.get("/admin/", include_in_schema=False)
+def admin_page():
+    return FileResponse(ADMIN_DIR / "index.html")
+
+
+@app.get("/camera", include_in_schema=False)
+@app.get("/camera/", include_in_schema=False)
+def camera_page():
+    return FileResponse(CAMERA_DIR / "index.html")
+
+
+@app.get("/customer", include_in_schema=False)
+@app.get("/customer/", include_in_schema=False)
+def customer_page():
+    return FileResponse(CUSTOMER_DIR / "index.html")
+
+
+@app.get("/enter", include_in_schema=False)
+@app.get("/enter/", include_in_schema=False)
+def enter_page():
+    return FileResponse(ENTER_DIR / "index.html")
+
+
+@app.get("/demo", include_in_schema=False)
+@app.get("/demo/", include_in_schema=False)
+def demo_page():
+    return FileResponse(DEMO_DIR / "index.html")
+
+
 @app.get("/shop", include_in_schema=False)
 @app.get("/shop/", include_in_schema=False)
 def shop_page():

@@ -175,7 +175,7 @@
       modal = document.createElement('div');
       modal.id = 'smartShelfServerModal';
       modal.style.cssText = `
-        position: fixed; inset: 0; z-index: 99999;
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; inset: 0; z-index: 99999;
         background: rgba(11, 19, 43, 0.85); backdrop-filter: blur(4px);
         display: flex; align-items: center; justify-content: center; padding: 1rem;
         font-family: 'Dana', system-ui, sans-serif; direction: rtl;
