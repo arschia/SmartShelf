@@ -1,1 +1,1 @@
-"""SMARTSHELF Backend Application Package."""
+"""Computer Vision Package."""

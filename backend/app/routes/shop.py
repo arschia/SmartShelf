@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..models import Product, Zone, ShopScenario, CustomerSession
 from ..services.auth import get_current_admin
-from ..services.shop_scenario import configuration, snapshot, shop_runtime, process_shop_frame
+from ..services.shop_scenario import active_customer, configuration, snapshot, shop_runtime, process_shop_frame
 from ..vision.bottle_detector import get_bottle_detector
 from ..vision.two_reference import is_two_reference
 from ..vision.camera_feed import camera_feed
@@ -147,6 +147,11 @@ async def configure(payload:Setup,db:Session=Depends(get_db)):
             cfg.stock_quantity = None
             cfg.pick_session_id = None
             cfg.needs_review = False
+        if cfg.needs_review and not active_customer(db):
+            # Explicit activation after the previous session ended accepts
+            # a fresh stock baseline without changing the closed cart.
+            cfg.needs_review = False
+            cfg.pick_session_id = None
         cfg.enabled = True
         cfg.zone_id = zone.id
         cfg.product_id = product.id

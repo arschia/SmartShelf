@@ -181,6 +181,7 @@ def test_pause_resume_same_shelf_keeps_cart_and_stock(demo, client, auth_headers
     assert demo.product.stock_quantity == product_stock
 
     # First observation after resume is only a baseline, not a new sale.
+    demo.clock.value += 10
     demo.feed('ABSENT')
     assert quantity(demo, customer) == 1
     demo.feed('PRESENT')
@@ -226,3 +227,60 @@ def test_tablet_ai_control_does_not_require_webrtc(demo, client, auth_headers, m
     assert camera.commands[-1]["enabled"] is False
     assert camera.commands[-1]["revision"] >= 2
     assert demo.db.get(ShopScenario, 1).enabled is False
+
+
+def test_saved_calibration_drives_stock_and_one_cart_item(demo, client, auth_headers):
+    def jpeg(image):
+        return base64.b64encode(cv2.imencode('.jpg', image)[1]).decode()
+
+    empty = np.full((240, 320, 3), 225, np.uint8)
+    full = empty.copy()
+    cv2.rectangle(full, (128, 50), (184, 188), (48, 76, 102), -1)
+    roi = [.35, .15, .28, .68]
+    zone_id = demo.cfg.zone_id
+    assert client.post('/api/shop/configure', headers=auth_headers, json={'enabled': False}).is_success
+    saved = client.post('/api/presence', headers=auth_headers, json={
+        'mode': 'calibrate', 'zone_id': zone_id, 'roi': roi, 'present': jpeg(full), 'empty': jpeg(empty)})
+    assert saved.is_success, saved.text
+    started = client.post('/api/shop/configure', headers=auth_headers, json={
+        'enabled': True, 'product_id': demo.product.id, 'zone_id': zone_id,
+        'roi': roi, 'roi_confirmed': True, 'camera_source': 'browser'})
+    assert started.json()['shop']['vision_mode'] == 'two_reference'
+    customer = demo.customer()
+    for sequence, image in enumerate([empty]*3 + [full]*3 + [empty]*6):
+        response = client.post('/api/shop/frame', headers=auth_headers, json={
+            'frame': jpeg(image), 'stream_id': 'camera-test', 'sequence': sequence})
+        assert response.is_success, response.text
+        if sequence in (2, 5, 8, 11):
+            expected = {2: (0, 0), 5: (1, 0), 8: (0, 1), 11: (0, 1)}[sequence]
+            assert (response.json()['shop']['stock_quantity'], quantity(demo, customer)) == expected
+        demo.clock.value += .65
+
+
+def test_observed_pick_resumes_in_same_session_after_camera_gap(demo):
+    customer = demo.customer()
+    demo.feed('PRESENT')
+    demo.clock.value += 10
+    demo.feed('ABSENT')
+    assert demo.cfg.needs_review and quantity(demo, customer) == 0
+    demo.feed('PRESENT')
+    result = demo.feed('ABSENT')
+    assert result['cart_info']['action'] == 'PICKED'
+    assert demo.product.stock_quantity == 0 and quantity(demo, customer) == 1
+    demo.clock.value += 10
+    demo.feed('ABSENT')
+    assert quantity(demo, customer) == 1
+    demo.feed('PRESENT')
+    assert demo.product.stock_quantity == 1 and quantity(demo, customer) == 0
+
+
+def test_three_frames_at_five_fps_confirm_within_half_second(demo):
+    demo.customer()
+    demo.feed('PRESENT')
+    start = demo.clock.value
+    for elapsed in (0, .2, .41):
+        demo.clock.value = start + elapsed
+        result = demo.runtime.observe(demo.db, 'ABSENT', source='browser:test')
+        if elapsed < .4:
+            assert demo.cfg.stock_quantity == 1 and not result['events']
+    assert demo.cfg.stock_quantity == 0 and result['cart_info']['cart']['total_quantity'] == 1

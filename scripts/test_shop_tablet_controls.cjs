@@ -46,11 +46,11 @@ function environment(mode='live'){
 (async()=>{
   const live=environment(),running=live.run('startFrames()');
   await until(()=>live.element('cameraStatus').textContent.includes('فریم تازهٔ تبلت به سرور رسید'));
-  assert.deepEqual(live.commands,[true,'wss:true']);assert.equal(live.element('startCamera').disabled,true);
+  assert.deepEqual(live.commands,['wss:true',true]);assert.equal(live.element('startCamera').disabled,true);
   assert.equal(live.posts(),0,'admin must not submit duplicate WebRTC frames to the accounting pipeline');
   assert.match(live.element('cameraStatus').textContent,/تشخیص برداشت و برگشت فعال/);
   await live.element('stopCamera').onclick();await running;
-  assert.deepEqual(live.commands,[true,'wss:true','wss:false',false]);assert.equal(live.videoStops(),0,'AI pause must preserve live video');assert.equal(live.element('startCamera').disabled,false);
+  assert.deepEqual(live.commands,['wss:true',true,'wss:false',false]);assert.equal(live.videoStops(),0,'AI pause must preserve live video');assert.equal(live.element('startCamera').disabled,false);
   assert.match(live.element('cameraStatus').textContent,/فرمان توقف به سرور|توقف ارسال فریم/);
 
   // Operator buttons must start AI frames automatically and stop tablet
@@ -59,11 +59,12 @@ function environment(mode='live'){
   automatic.run('initial.enabled=false;render(initial)');
   automatic.element('cameraSource').value='tablet';
   automatic.element('roiConfirmed').checked=true;
-  await automatic.element('enable').onclick();
+  assert.equal(automatic.element('startCamera').disabled,false);
+  await automatic.element('startCamera').onclick();
   await until(()=>automatic.commands.includes(true)&&automatic.polls()>0);
   assert.equal(automatic.element('startCamera').disabled,true,'auto-start should own the loop');
   await automatic.element('disable').onclick();
-  assert.deepEqual(automatic.commands,[true,'wss:true',false],'scenario stop must send remote stop');
+  assert.deepEqual(automatic.commands,['wss:true',true,false],'scenario stop must send remote stop');
   assert(automatic.videoStops()>0,'viewer must be released after stop acknowledgment');
   assert.equal(automatic.element('disable').disabled,true,'stopped scenario cannot stop twice');
 

@@ -24,7 +24,7 @@ function render(shop){
   $('total').textContent=fa(shop.cart?.grand_total||0)+' تومان';
   const states={PRESENT:'بطری در جایگاه است',ABSENT:'جایگاه خالی است',UNKNOWN:'در انتظار تثبیت تصویر',TRANSITION:'در حال بررسی تغییر'};
   $('slotState').textContent=states[shop.state]||shop.state;
-  $('status').textContent=shop.needs_review?'تغییر در زمان قطع تصویر رخ داده است؛ سبد خودکار تغییر نکرد. سشن را بررسی و پایان دهید و سناریو را دوباره تنظیم کنید.':shop.enabled?'سناریوی دانشگاهی فعال است؛ تغییرات پس از تثبیت چند فریم ثبت می‌شوند.':'سناریو متوقف است؛ برای شروع، محصول و جایگاه را مشخص کنید.';
+  $('status').textContent=shop.needs_review?'یک تغییر هنگام قطع تصویر ثبت شد و نیاز به بررسی دارد. پس از تثبیت تصویر، برداشت‌های جدید در سبد ثبت می‌شوند.':shop.enabled?'سناریوی دانشگاهی فعال است؛ تغییرات پس از تثبیت چند فریم ثبت می‌شوند.':'سناریو متوقف است؛ برای شروع، محصول و جایگاه را مشخص کنید.';
   // A paused scenario can be resumed with the same shelf even with an active customer.
   $('enable').disabled=scenarioBusy||Boolean(shop.session_id&&shop.enabled);
   $('disable').disabled=scenarioBusy||!shop.enabled;
@@ -136,10 +136,11 @@ async function showTabletVideo(){
     onState:(state,text)=>{$('video').hidden=!['live','play'].includes(state);$('videoStatus').textContent=text;if(state==='live'||state==='play')keepPreviewLive();},
     onStats:stats=>{if(stats.width)$('videoStatus').textContent=`WebRTC · ${stats.width}×${stats.height} · ${stats.fps.toFixed(1)} FPS`;}});
   await tabletViewer.start();
+  if(!hasLiveVideo()&&!$('video').srcObject)startTabletJpegPreview();
   keepPreviewLive();
 }
 async function pollTabletJpeg(){
-  if(fallbackLoading||!token||$('cameraSource').value!=='tablet'||$('video').srcObject)return;
+  if(fallbackLoading||!token||$('cameraSource').value!=='tablet'||hasLiveVideo())return;
   fallbackLoading=true;
   try{
     const response=await fetch(SmartShelfApi.apiUrl('/api/admin/camera/latest-frame?raw=true'),{
@@ -152,7 +153,7 @@ async function pollTabletJpeg(){
     try{
       const img=new Image();
       await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});
-      if(!token||$('video').srcObject)return;
+      if(!token||$('cameraSource').value!=='tablet'||hasLiveVideo())return;
       preview=img;fallbackFrameAt=Date.now();
       canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;draw();
     }finally{URL.revokeObjectURL(url);}
@@ -163,13 +164,17 @@ function startTabletJpegPreview(){
   if(fallbackTimer!==null)return;
   $('videoStatus').textContent='پیش‌نمایش جایگزین JPEG از سرور؛ پردازش هوش مصنوعی مستقل از WebRTC است.';
   fallbackTimer=setInterval(pollTabletJpeg,600);
-  pollTabletJpeg();
+  if(!hasLiveVideo())pollTabletJpeg();
 }
 async function openCamera(){
   if(tabletViewer){tabletViewer.stop();tabletViewer=null;}
 
   if(!stream?.getVideoTracks().some(t=>t.readyState==='live')){stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('video').srcObject=stream;}
   $('video').hidden=false;await $('video').play();keepPreviewLive();
+}
+function hasLiveVideo(){
+  const video=$('video');
+  return Boolean(video.srcObject&&video.readyState>=2&&video.videoWidth>0);
 }
 function capture(){
   const v=$('video');
@@ -185,7 +190,7 @@ function capture(){
   return c.toDataURL('image/jpeg',.86);
 }
 function updateFrameButtons(){
-  $('startCamera').disabled=working||controlBusy||scenarioBusy||!state?.enabled;
+  $('startCamera').disabled=working||controlBusy||scenarioBusy||!state;
   $('startCamera').textContent=working?(framesConfirmed?'ارسال تصویر فعال است':'در حال بررسی ارسال…'):'شروع ارسال تصویر';
   $('stopCamera').disabled=controlBusy||(!working&&$('cameraSource').value!=='tablet');
 }
@@ -218,19 +223,17 @@ async function startFrames(){
   try{
     if($('cameraSource').value==='tablet'){
       // AI JPEG upload is independent of WebRTC preview.
-      try{
-        await showTabletVideo();if(!current())return;
-        await tabletViewer.setProcessing(true,current);if(!current())return;
-      }catch(error){
-        if(!current())return;
-        startTabletJpegPreview();
-        $('videoStatus').textContent='WebRTC برقرار نشد؛ پیش‌نمایش جایگزین JPEG فعال است.';
-      }
       const control=await api('/api/shop/stream',{method:'POST',body:JSON.stringify({enabled:true})});
-      fallbackDeviceId=control.device_id;
       if(!current())return;
+      fallbackDeviceId=control.device_id;
+      // Preview negotiation may take seconds. Observe server frames immediately.
+      showTabletVideo().then(()=>{
+        if(current())return tabletViewer.setProcessing(true,current);
+      }).catch(()=>{
+        if(current())startTabletJpegPreview();
+      });
       let lastCount=null,lastDevice=null,lastProgress=Date.now();
-      $('cameraStatus').textContent='تبلت فرمان شروع را تأیید کرد؛ منتظر رسیدن فریم تازه به سرور…';
+      $('cameraStatus').textContent='فرمان شروع ثبت شد؛ منتظر رسیدن فریم تازه از تبلت…';
       while(current()){
         let timer=null;
         try{
@@ -238,7 +241,7 @@ async function startFrames(){
           const stats=await cameraStatus(controller.signal);if(!current())break;
           const d=await api('/api/shop/status',{signal:controller.signal});if(!current())break;
           render(d.shop);
-          const expectedDevice=tabletViewer?.active?tabletViewer.deviceId:fallbackDeviceId;
+          const expectedDevice=fallbackDeviceId||tabletViewer?.deviceId;
           const sameDevice=Boolean(expectedDevice&&stats.device_id===expectedDevice);
           const advanced=sameDevice&&stats.is_live&&lastDevice===stats.device_id&&lastCount!==null&&stats.frame_count>lastCount;
           if(advanced){lastProgress=Date.now();framesConfirmed=true;}
@@ -270,7 +273,7 @@ async function startFrames(){
         $('cameraStatus').textContent='تصویر زنده ارسال می‌شود؛ برداشت و برگشت در سرور بررسی می‌شوند.';notice('');
       }catch(error){if(current()){$('cameraStatus').textContent='در انتظار تصویر یا اتصال…';notice(error.message||'ارتباط قطع شد؛ تلاش دوباره انجام می‌شود.');}}
       finally{clearTimeout(timer);}
-      if(current())await new Promise(resolve=>setTimeout(resolve,450));
+      if(current())await new Promise(resolve=>setTimeout(resolve,200));
     }
   }catch(error){if(current()){await stopFrames();$('cameraStatus').textContent='شروع ارسال تصویر تأیید نشد.';notice(error.message||'ارسال تصویر شروع نشد؛ وضعیت دوربین را بررسی کنید.');}}
   finally { if(epoch===loopEpoch&&!working)updateFrameButtons(); }
@@ -312,11 +315,11 @@ $('cameraSource').onchange=()=>{stopFrames();stopVideoPreview();fullReference=nu
 $('referenceFull').onclick=()=>{try{
   if(state?.enabled)throw Error('ابتدا سناریو را متوقف کنید.');
   fullReference=capture();$('referenceStatus').textContent='تصویر مرجع بطری ثبت شد.';
-}catch(e){notice(e.message);}};
+}catch(e){$('referenceStatus').textContent=e.message;notice(e.message);}};
 $('referenceEmpty').onclick=()=>{try{
   if(state?.enabled)throw Error('ابتدا سناریو را متوقف کنید.');
   emptyReference=capture();$('referenceStatus').textContent='تصویر مرجع جایگاه خالی ثبت شد.';
-}catch(e){notice(e.message);}};
+}catch(e){$('referenceStatus').textContent=e.message;notice(e.message);}};
 $('referenceSave').onclick=async()=>{
   if(state?.enabled){notice('ابتدا سناریو را متوقف کنید.');return;}
   if(!fullReference||!emptyReference){notice('هر دو مرجع بطری و جایگاه خالی را ثبت کنید.');return;}
@@ -332,17 +335,18 @@ $('referenceSave').onclick=async()=>{
     const selected=zones.find(z=>z.id===Number($('zone').value));
     if(selected){selected.roi=[...roi];selected.calibrated=true;}
     notice('مرجع‌های بطری و جایگاه خالی ثبت شدند؛ حالا سناریو را فعال کنید.');
-  }catch(e){notice(e.message);}
+  }catch(e){$('referenceStatus').textContent=e.message;notice(e.message);}
   finally{$('referenceSave').disabled=false;}
 };
-$('startCamera').onclick=startFrames;$('stopCamera').onclick=()=>stopFrames(true);
+$('startCamera').onclick=()=>state?.enabled?startFrames():enableScenario();$('stopCamera').onclick=()=>stopFrames(true);
 function setScenarioBusy(busy){
   scenarioBusy=busy;
   $('enable').disabled=busy||Boolean(state?.session_id&&state?.enabled);
   $('disable').disabled=busy||!state?.enabled;
   $('cameraSource').disabled=busy||Boolean(state?.enabled);
 }
-$('enable').onclick=async()=>{
+$('enable').onclick=enableScenario;
+async function enableScenario(){
   if(scenarioBusy)return;
   setScenarioBusy(true);
   try{
@@ -357,8 +361,8 @@ $('enable').onclick=async()=>{
     // The calibration snapshot is not the AI frame stream.
     // Enabling the scenario starts the actual stream without a second click.
     startFrames();
-  }catch(e){notice(e.message);}
-  finally{setScenarioBusy(false);}
+  }catch(e){$('cameraStatus').textContent=e.message;notice(e.message);}
+  finally{setScenarioBusy(false);updateFrameButtons();}
 };
 $('disable').onclick=async()=>{
   if(scenarioBusy)return;

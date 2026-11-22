@@ -64,7 +64,7 @@ def snapshot(db):
 
 class ShopRuntime:
     MAX_GAP = 2.5
-    STABLE_SECONDS = 1.2
+    STABLE_SECONDS = 0.4
     MIN_FRAMES = 3
 
     def __init__(self, clock=None):
@@ -174,10 +174,26 @@ class ShopRuntime:
             if baseline:
                 # A pause/restart is not a purchase. Preserve the last confirmed
                 # inventory, and flag an actual change during the interruption.
-                if old_quantity is not None and old_quantity != quantity:
+                if customer_id is not None and old_quantity is not None and old_quantity != quantity:
                     cfg.needs_review = True
                     event_status = "OFFLINE_CHANGE"
-            elif not cfg.needs_review:
+                # A change across a blind interval cannot be attributed to a
+                # customer. A legacy review flag may also carry a stale owner.
+                if old_quantity != quantity:
+                    cfg.pick_session_id = None
+                elif cfg.needs_review and cfg.pick_session_id is not None:
+                    # Older versions could retain ownership through an offline
+                    # change. Only restore it for a confirmed, attributed pick.
+                    last_change = db.query(Event).filter(
+                        Event.zone_id == cfg.zone_id, Event.product_id == cfg.product_id,
+                        Event.type.in_(["PRODUCT_PICKED", "PRODUCT_RETURNED", "STOCK_SYNC"]),
+                        Event.status != "BASELINE",
+                    ).order_by(Event.id.desc()).first()
+                    if not (last_change and last_change.type == "PRODUCT_PICKED"
+                            and last_change.status == "PROCESSED"
+                            and last_change.session_id == cfg.pick_session_id):
+                        cfg.pick_session_id = None
+            else:
                 if quantity == 0:
                     cfg.pick_session_id = None
                     if customer_id is not None and self.candidate_session == customer_id:
@@ -216,13 +232,19 @@ class ShopRuntime:
         # A calibrated Windows-local shelf uses the same two-reference occupancy
         # engine as the fixed ZIP. WebRTC is only a preview; camera WSS/HTTPS
         # JPEG frames are the sole source of accounting transitions.
+        calibrated = False
         try:
             full = json.loads(zone.ref_full_features or "null")
             empty = json.loads(zone.ref_empty_features or "null")
             if is_two_reference(full) and is_two_reference(empty):
                 cropped = crop_roi(frame, [zone.roi_x, zone.roi_y, zone.roi_w, zone.roi_h])
                 state, confidence, _ = classify_frame(cropped, full, empty)
-                return state, confidence, []
+                if state != "UNKNOWN":
+                    return state, confidence, []
+                # A rotated bottle may no longer resemble the full reference.
+                # Allow positive model evidence; a missed detection alone must
+                # never turn an ambiguous calibrated frame into a purchase.
+                calibrated = True
         except (ValueError, TypeError, json.JSONDecodeError, PresenceFeatureError):
             return "UNKNOWN", 0.0, []
         gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
@@ -241,6 +263,8 @@ class ShopRuntime:
         if inside:
             score = inside[0]["confidence"]
             return ("PRESENT" if score >= .4 else "UNKNOWN"),score,result["detections"]
+        if calibrated:
+            return "UNKNOWN", 0., result["detections"]
         return "ABSENT",1.,result["detections"]
 
 

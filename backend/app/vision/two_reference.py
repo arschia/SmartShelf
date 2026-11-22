@@ -130,13 +130,19 @@ def _decode_reference(reference: dict):
     return points, descriptors, norm, algorithm, (int(reference["width"]), int(reference["height"]))
 
 
-def _match(reference: dict, current: np.ndarray) -> dict:
+def _match(reference: dict, current: np.ndarray, frame_features=None) -> dict:
     ref_points, ref_desc, norm, algorithm, ref_size = _decode_reference(reference)
     if current is None or current.size == 0:
         return {"score": 0.0, "inliers": 0, "matches": 0, "inlier_ratio": 0.0}
     # Keep the reference aspect ratio and scale range consistent when camera resolution changes.
-    cur = cv2.resize(current, ref_size, interpolation=cv2.INTER_AREA) if current.shape[1::-1] != ref_size else current
-    cur_points, cur_desc, _, cur_algorithm, _ = _extract(cur)
+    if frame_features is None or ref_size not in frame_features:
+        cur = cv2.resize(current, ref_size, interpolation=cv2.INTER_AREA) if current.shape[1::-1] != ref_size else current
+        features = _extract(cur)
+        if frame_features is not None:
+            frame_features[ref_size] = features
+    else:
+        features = frame_features[ref_size]
+    cur_points, cur_desc, _, cur_algorithm, _ = features
     if cur_algorithm != algorithm:
         return {"score": 0.0, "inliers": 0, "matches": 0, "inlier_ratio": 0.0}
     matcher = cv2.BFMatcher(norm)
@@ -189,6 +195,10 @@ def calibrate_pair(present_image: np.ndarray, empty_image: np.ndarray, roi: Opti
         raise PresenceFeatureError("دو مرجع تفاوت تصویری کافی ندارند؛ یک تصویر با محصول و دیگری بدون محصول بگیرید")
     if overlap["inliers"] < 4:
         # Very different backgrounds/camera positions are not a safe calibration pair.
+        return _calibrate_pixel_fallback(present_image, empty_image, roi)
+    # Check the actual runtime classifier before accepting a feature pair.
+    if (classify_frame(present_crop, full_ref, empty_ref)[0] != "PRESENT"
+            or classify_frame(empty_crop, full_ref, empty_ref)[0] != "ABSENT"):
         return _calibrate_pixel_fallback(present_image, empty_image, roi)
     return full_ref, empty_ref, {
         "separation": separation,
@@ -265,8 +275,9 @@ def classify_frame(frame_roi: np.ndarray, full_ref: dict, empty_ref: dict):
     if full_ref.get("kind") == PIXEL_KIND and empty_ref.get("kind") == PIXEL_KIND:
         return _classify_pixel(frame_roi, full_ref, empty_ref)
     try:
-        full = _match(full_ref, frame_roi)
-        empty = _match(empty_ref, frame_roi)
+        frame_features = {}
+        full = _match(full_ref, frame_roi, frame_features)
+        empty = _match(empty_ref, frame_roi, frame_features)
     except PresenceFeatureError as exc:
         return "UNKNOWN", 0.0, {"reason": str(exc)}
     best_name, best, other = ("PRESENT", full, empty) if full["score"] > empty["score"] else ("ABSENT", empty, full)

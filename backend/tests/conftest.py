@@ -8,6 +8,7 @@ os.environ.update({
     "ADMIN_PIN": "TestAdminPin#2026",
     "TOKEN_TTL_SECONDS": "28800",
     "STORE_OPEN": "true",
+    "ALLOW_INSECURE_TEST_PIN": "false",
     "DB_URL": "sqlite:///:memory:",
 })
 
