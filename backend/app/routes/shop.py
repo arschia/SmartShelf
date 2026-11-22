@@ -65,7 +65,10 @@ class ShopFrame(BaseModel):
 def shop_status(db:Session=Depends(get_db)):
     return {"shop":snapshot(db),
             "products":[{"id":p.id,"name":p.name,"unit_price":p.unit_price,"stock_quantity":p.stock_quantity} for p in db.query(Product).order_by(Product.id)],
-            "zones":[{"id":z.id,"name":z.name} for z in db.query(Zone).order_by(Zone.id)]}
+            "zones":[{"id":z.id,"name":z.name,
+                      "roi":[z.roi_x,z.roi_y,z.roi_w,z.roi_h],
+                      "calibrated":bool(z.ref_full_features and z.ref_empty_features)}
+                     for z in db.query(Zone).order_by(Zone.id)]}
 
 
 @router.post("/stream")
