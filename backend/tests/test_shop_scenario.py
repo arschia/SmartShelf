@@ -189,9 +189,8 @@ def test_pause_resume_same_shelf_keeps_cart_and_stock(demo, client, auth_headers
 
 def test_resume_with_active_customer_rejects_changed_product(demo, client, auth_headers):
     demo.customer()
-    demo.db.add(Product(name='Other bottle', sku='OTHER-RESUME', unit_price=10))
-    demo.db.commit()
-    other = demo.db.query(Product).filter_by(sku='OTHER-RESUME').one()
+    other = demo.db.query(Product).filter(Product.id != demo.product.id).first()
+    assert other is not None
     response = client.post('/api/shop/configure', headers=auth_headers, json={
         'enabled': True, 'product_id': other.id, 'zone_id': demo.cfg.zone_id,
         'roi_confirmed': True,
