@@ -235,7 +235,7 @@ async function startFrames(){
           lastCount=stats.frame_count;lastDevice=stats.device_id;
           if(fresh){
             const detail=!d.shop.enabled?'برای ثبت موجودی و سبد، سناریوی دانشگاهی را فعال کنید.':d.shop.camera_source!=='tablet'?'سناریو برای دوربین همین دستگاه تنظیم شده است؛ منبع سناریو را بررسی کنید.':d.shop.camera_live?'تشخیص برداشت و برگشت فعال است.':'فریم می‌رسد؛ در انتظار پردازش سناریو…';
-            $('cameraStatus').textContent=`فریم تازهٔ تبلت به سرور رسید · ${fa(stats.frame_count)} فریم · ${stats.fps||0} FPS پردازش. ${detail}`;
+            $('cameraStatus').textContent=`فریم تازهٔ تبلت به سرور رسید · ${fa(stats.frame_count)} فریم دریافتی · ${fa(d.shop.frames_processed||0)} فریم بررسی‌شده توسط هوش مصنوعی · ${stats.fps||0} FPS. ${detail}`;
           }else if(!sameDevice)$('cameraStatus').textContent='تصویر سرور متعلق به دوربین دیگری است؛ فریم همین تبلت هنوز تأیید نشده است.';
           else if(Date.now()-lastProgress>=4000)$('cameraStatus').textContent='ویدیو برقرار است، اما فریم تازهٔ هوش مصنوعی به سرور نمی‌رسد؛ وضعیت ارسال در صفحهٔ تبلت را بررسی کنید.';
           else $('cameraStatus').textContent='در انتظار تأیید یک فریم تازه از همین تبلت…';
