@@ -104,7 +104,7 @@ function stopVideoPreview(){
   $('video').pause?.();$('video').srcObject=null;$('video').hidden=true;
 }
 function keepPreviewLive(){
-  if(previewAnimation!==null)return;
+  if(typeof requestAnimationFrame!=='function'||previewAnimation!==null)return;
   const tick=now=>{
     if(!token||!$('video').srcObject){previewAnimation=null;return;}
     if(now-lastPreviewPaint>=80){lastPreviewPaint=now;draw();}
