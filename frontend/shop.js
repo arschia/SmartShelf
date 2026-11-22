@@ -4,7 +4,8 @@ const $=id=>document.getElementById(id), canvas=$('canvas'), ctx=canvas.getConte
 let token=sessionStorage.getItem('smartshelf_admin_token')||'',state=null,products=[];
 let socket=null,reconnect=null,qrTimer=null,freshTimer=null,qrLoading=false,lastEntryKey=null;
 let stream=null,preview=null,roi=[0,0,1,1],drag=null,working=false,loopEpoch=0,sequence=0;
-let lastShopUpdate=0,controller=null,tabletViewer=null,controlBusy=false,framesConfirmed=false;
+let lastShopUpdate=0,controller=null,tabletViewer=null,controlBusy=false,framesConfirmed=false,scenarioBusy=false;
+let previewAnimation=null,lastPreviewPaint=0;
 const streamId=crypto.randomUUID(),fa=n=>Number(n||0).toLocaleString('fa-IR');
 function notice(text){$('message').textContent=text;}
 async function api(path,options={}){
@@ -24,7 +25,9 @@ function render(shop){
   $('slotState').textContent=states[shop.state]||shop.state;
   $('status').textContent=shop.needs_review?'تغییر در زمان قطع تصویر رخ داده است؛ سبد خودکار تغییر نکرد. سشن را بررسی و پایان دهید و سناریو را دوباره تنظیم کنید.':shop.enabled?'سناریوی دانشگاهی فعال است؛ تغییرات پس از تثبیت چند فریم ثبت می‌شوند.':'سناریو متوقف است؛ برای شروع، محصول و جایگاه را مشخص کنید.';
   // A paused scenario can be resumed with the same shelf even with an active customer.
-  $('enable').disabled=Boolean(shop.session_id&&shop.enabled);$('cameraSource').disabled=shop.enabled;
+  $('enable').disabled=scenarioBusy||Boolean(shop.session_id&&shop.enabled);
+  $('disable').disabled=scenarioBusy||!shop.enabled;
+  $('cameraSource').disabled=shop.enabled||scenarioBusy;
   if(shop.enabled){$('cameraSource').value=shop.camera_source;roi=shop.roi;}
   $('cart').replaceChildren();
   for(const item of shop.cart?.items||[]){const p=document.createElement('p');p.textContent=`${item.product_name} × ${fa(item.quantity)} — ${fa(item.line_total)} تومان`;$('cart').appendChild(p);}
@@ -79,7 +82,14 @@ function connect(){
   socket.onerror=()=>socket.close();
 }
 function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);if(preview)ctx.drawImage(preview,0,0,canvas.width,canvas.height);
+  const video=$('video');
+  const live=video.srcObject&&video.readyState>=2&&video.videoWidth>0;
+  if(live&&(canvas.width!==video.videoWidth||canvas.height!==video.videoHeight)){
+    canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  }
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(live)ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  else if(preview)ctx.drawImage(preview,0,0,canvas.width,canvas.height);
   const [x,y,w,h]=roi;ctx.strokeStyle='#73e3bf';ctx.lineWidth=3;ctx.strokeRect(x*canvas.width,y*canvas.height,w*canvas.width,h*canvas.height);
   ctx.font='18px Dana, sans-serif';ctx.direction='rtl';ctx.textAlign='right';ctx.fillStyle='#73e3bf';ctx.fillText('جایگاه ثابت بطری',Math.min(canvas.width-8,(x+w)*canvas.width),Math.max(22,y*canvas.height-8));
 }
@@ -88,9 +98,19 @@ async function showImage(data,epoch=null){
   if(epoch!==null&&epoch!==loopEpoch)return;preview=img;canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;draw();
 }
 function stopVideoPreview(){
+  if(previewAnimation!==null){cancelAnimationFrame(previewAnimation);previewAnimation=null;}
   tabletViewer?.stop();tabletViewer=null;
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
   $('video').pause?.();$('video').srcObject=null;$('video').hidden=true;
+}
+function keepPreviewLive(){
+  if(previewAnimation!==null)return;
+  const tick=now=>{
+    if(!token||!$('video').srcObject){previewAnimation=null;return;}
+    if(now-lastPreviewPaint>=80){lastPreviewPaint=now;draw();}
+    previewAnimation=requestAnimationFrame(tick);
+  };
+  previewAnimation=requestAnimationFrame(tick);
 }
 async function showTabletVideo(){
   if(tabletViewer?.active&&$('video').srcObject){try{await tabletViewer.play();return;}catch{}}
@@ -100,12 +120,13 @@ async function showTabletVideo(){
     onState:(state,text)=>{$('video').hidden=!['live','play'].includes(state);$('videoStatus').textContent=text;},
     onStats:stats=>{if(stats.width)$('videoStatus').textContent=`WebRTC · ${stats.width}×${stats.height} · ${stats.fps.toFixed(1)} FPS`;}});
   await tabletViewer.start();
+  keepPreviewLive();
 }
 async function openCamera(){
   if(tabletViewer){tabletViewer.stop();tabletViewer=null;}
 
   if(!stream?.getVideoTracks().some(t=>t.readyState==='live')){stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('video').srcObject=stream;}
-  $('video').hidden=false;await $('video').play();
+  $('video').hidden=false;await $('video').play();keepPreviewLive();
 }
 function capture(){
   const v=$('video');if(!v.videoWidth||v.readyState<2)throw new Error('تصویر دوربین هنوز آماده نیست.');
@@ -145,7 +166,7 @@ async function startFrames(){
     if($('cameraSource').value==='tablet'){
       await showTabletVideo();if(!current())return;
       $('cameraStatus').textContent='در حال فرستادن فرمان شروع به تبلت…';
-      await tabletViewer.setProcessing(true);if(!current())return;
+      await tabletViewer.setProcessing(true,current);if(!current())return;
       let lastCount=null,lastDevice=null,lastProgress=Date.now();
       $('cameraStatus').textContent='تبلت فرمان شروع را تأیید کرد؛ منتظر رسیدن فریم تازه به سرور…';
       while(current()){
@@ -202,17 +223,58 @@ $('capture').onclick=async()=>{try{if($('cameraSource').value==='tablet'){if(!ta
 $('stopVideo').onclick=stopVideoPreview;
 $('cameraSource').onchange=()=>{stopFrames();stopVideoPreview();};
 $('startCamera').onclick=startFrames;$('stopCamera').onclick=()=>stopFrames(true);
-$('enable').onclick=async()=>{try{const price=Number(SmartShelfFormat.normalizeDigits($('price').value));if(!Number.isInteger(price)||price<0)throw new Error('قیمت نمایشی باید یک عدد صحیح نامنفی باشد.');const d=await api('/api/shop/configure',{method:'POST',body:JSON.stringify({enabled:true,product_id:Number($('product').value),zone_id:Number($('zone').value),unit_price:price,camera_source:$('cameraSource').value,roi,roi_confirmed:$('roiConfirmed').checked})});render(d.shop);notice('سناریو فعال شد. ارسال تصویر را شروع کنید؛ دیدن اولیهٔ بطری فقط موجودی را ثبت می‌کند.');}catch(e){notice(e.message);}};
-$('disable').onclick=async()=>{
-  // Invalidate the local loop immediately; never wait for inference to finish
-  // before letting the operator stop the camera.
-  stopFrames();
-  stopVideoPreview();
+function setScenarioBusy(busy){
+  scenarioBusy=busy;
+  $('enable').disabled=busy||Boolean(state?.session_id&&state?.enabled);
+  $('disable').disabled=busy||!state?.enabled;
+  $('cameraSource').disabled=busy||Boolean(state?.enabled);
+}
+$('enable').onclick=async()=>{
+  if(scenarioBusy)return;
+  setScenarioBusy(true);
   try{
-    const d=await api('/api/shop/configure',{method:'POST',body:'{"enabled":false}'});
+    const price=Number(SmartShelfFormat.normalizeDigits($('price').value));
+    if(!Number.isInteger(price)||price<0)throw new Error('قیمت نمایشی باید یک عدد صحیح نامنفی باشد.');
+    const d=await api('/api/shop/configure',{method:'POST',body:JSON.stringify({
+      enabled:true,product_id:Number($('product').value),zone_id:Number($('zone').value),
+      unit_price:price,camera_source:$('cameraSource').value,roi,roi_confirmed:$('roiConfirmed').checked
+    })});
     render(d.shop);
-    notice('سناریو متوقف شد. سبد مشتری و موجودی برای شروع مجدد حفظ شده‌اند.');
+    notice('سناریو فعال شد؛ ارسال پیوستهٔ تصویر به‌صورت خودکار آغاز می‌شود.');
+    // The calibration snapshot is not the AI frame stream.
+    // Enabling the scenario starts the actual stream without a second click.
+    startFrames();
   }catch(e){notice(e.message);}
+  finally{setScenarioBusy(false);}
+};
+$('disable').onclick=async()=>{
+  if(scenarioBusy)return;
+  setScenarioBusy(true);
+  // Cancel the local loop first, but retain the WebRTC control channel
+  // until the stop command is acknowledged by the tablet.
+  stopFrames();
+  const viewer=tabletViewer;
+  const stopTablet=viewer?.active&&$('cameraSource').value==='tablet'
+    ? viewer.setProcessing(false,()=>!working).then(()=>true,()=>false)
+    : Promise.resolve(false);
+  try{
+    // Server-side stop is independent of the tablet and must be immediate.
+    const d=await api('/api/shop/configure',{method:'POST',body:JSON.stringify({enabled:false})});
+    render(d.shop);
+    notice('سناریو در سرور متوقف شد؛ در حال توقف ارسال فریم تبلت…');
+  }catch(e){notice(e.message);}
+  finally{
+    // Do not leave the interface waiting 22 seconds for a lost WebRTC link.
+    const stopped=await Promise.race([
+      stopTablet,
+      new Promise(resolve=>setTimeout(()=>resolve(false),3500))
+    ]);
+    if(viewer===tabletViewer)stopVideoPreview();
+    if(state&&!state.enabled)notice(stopped||$('cameraSource').value!=='tablet'
+      ? 'سناریو و ارسال تصویر متوقف شدند.'
+      : 'سناریو در سرور متوقف شد؛ تأیید توقف از تبلت نرسید. ارسال را در صفحهٔ تبلت نیز متوقف کنید.');
+    setScenarioBusy(false);
+  }
 };
 $('loginForm').onsubmit=async event=>{event.preventDefault();try{const response=await fetch(SmartShelfApi.apiUrl('/api/admin/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin:SmartShelfFormat.normalizeDigits($('pin').value.trim())})});const d=await response.json();if(!response.ok||!d.token)throw new Error(typeof d.detail==='string'?d.detail:'ورود ناموفق بود.');token=d.token;sessionStorage.setItem('smartshelf_admin_token',token);$('pin').value='';$('loginCard').hidden=true;await loadStatus(true);connect();notice('');}catch(e){notice(e.message);}};
 freshTimer=setInterval(()=>{if(working&&state?.enabled&&Date.now()-lastShopUpdate>5000)$('cameraStatus').textContent='تصویر تازه نداریم؛ مقدار موجودی، آخرین مقدار ثبت‌شده است و نبودن تصویر خرید ایجاد نمی‌کند.';},2000);
