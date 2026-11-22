@@ -40,7 +40,13 @@ def snapshot(db):
     customer = active_customer(db)
     product = db.get(Product, cfg.product_id) if cfg and cfg.product_id else None
     zone = db.get(Zone, cfg.zone_id) if cfg and cfg.zone_id else None
+    try:
+        calibrated = bool(zone and is_two_reference(json.loads(zone.ref_full_features or "null"))
+                          and is_two_reference(json.loads(zone.ref_empty_features or "null")))
+    except (ValueError, TypeError):
+        calibrated = False
     return {"enabled": bool(cfg and cfg.enabled), "demo": True,
+            "calibrated": calibrated, "vision_mode": "two_reference" if calibrated else "onnx",
             "camera_source": cfg.camera_source if cfg else "browser",
             "zone_id": cfg.zone_id if cfg else None,
             "product_id": cfg.product_id if cfg else None,
