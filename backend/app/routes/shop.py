@@ -51,31 +51,57 @@ def shop_status(db:Session=Depends(get_db)):
 async def configure(payload:Setup,db:Session=Depends(get_db)):
     cfg = configuration(db)
     if not payload.enabled:
-        if cfg: cfg.enabled=False
-        db.commit(); shop_runtime.reset()
+        if cfg:
+            cfg.enabled = False
+            cfg.generation = (cfg.generation or 0) + 1
+        db.commit()
+        shop_runtime.reset()
     else:
-        if db.query(CustomerSession).filter_by(status="ACTIVE").first():
-            raise HTTPException(409,"برای تغییر تنظیمات، ابتدا سشن مشتری فعلی را پایان دهید.")
-        zone,product = db.get(Zone,payload.zone_id),db.get(Product,payload.product_id)
+        zone, product = db.get(Zone, payload.zone_id), db.get(Product, payload.product_id)
         if not zone or not product:
-            raise HTTPException(422,"محصول و جایگاه را انتخاب کنید.")
+            raise HTTPException(422, "محصول و جایگاه را انتخاب کنید.")
         if not payload.roi_confirmed:
-            raise HTTPException(422,"محدودهٔ جایگاه بطری را روی تصویر مشخص و تأیید کنید.")
+            raise HTTPException(422, "محدودهٔ جایگاه بطری را روی تصویر مشخص و تأیید کنید.")
+        # Resuming the same shelf must not erase a customer's cart ownership or
+        # the last known stock baseline. A different setup requires no customer.
+        same_setup = bool(
+            cfg and cfg.zone_id == zone.id and cfg.product_id == product.id
+            and cfg.camera_source == payload.camera_source
+            and all(abs(a - b) < 1e-6 for a, b in zip(
+                (zone.roi_x, zone.roi_y, zone.roi_w, zone.roi_h), payload.roi
+            ))
+            and (payload.unit_price is None or payload.unit_price == product.unit_price)
+        )
+        if db.query(CustomerSession).filter_by(status="ACTIVE").first() and not same_setup:
+            raise HTTPException(409, "برای تغییر محصول، قیمت یا جایگاه، ابتدا سشن مشتری فعلی را پایان دهید.")
         if not get_bottle_detector().status()["ready"]:
-            raise HTTPException(503,"مدل بطری آماده نیست.")
+            raise HTTPException(503, "مدل بطری آماده نیست.")
         if not cfg:
-            cfg=ShopScenario(id=1);db.add(cfg);db.flush()
-        elif cfg.stock_quantity:
-            old=db.get(Product,cfg.product_id)
-            if old: old.stock_quantity=max(0,old.stock_quantity-cfg.stock_quantity)
-        cfg.enabled=True;cfg.zone_id=zone.id;cfg.product_id=product.id
-        cfg.camera_source=payload.camera_source;cfg.stock_quantity=None;cfg.pick_session_id=None
-        cfg.generation=(cfg.generation or 0)+1;cfg.needs_review=False
-        zone.product_id=product.id;zone.roi_x,zone.roi_y,zone.roi_w,zone.roi_h=payload.roi
-        zone.state="UNKNOWN";zone.confidence=0.
-        if payload.unit_price is not None: product.unit_price=payload.unit_price
-        product.is_active=True
-        db.commit();shop_runtime.reset()
+            cfg = ShopScenario(id=1)
+            db.add(cfg)
+            db.flush()
+        if not same_setup:
+            if cfg.stock_quantity:
+                old = db.get(Product, cfg.product_id)
+                if old:
+                    old.stock_quantity = max(0, old.stock_quantity - cfg.stock_quantity)
+            cfg.stock_quantity = None
+            cfg.pick_session_id = None
+            cfg.needs_review = False
+        cfg.enabled = True
+        cfg.zone_id = zone.id
+        cfg.product_id = product.id
+        cfg.camera_source = payload.camera_source
+        cfg.generation = (cfg.generation or 0) + 1
+        zone.product_id = product.id
+        zone.roi_x, zone.roi_y, zone.roi_w, zone.roi_h = payload.roi
+        zone.state = "UNKNOWN"
+        zone.confidence = 0.
+        if payload.unit_price is not None:
+            product.unit_price = payload.unit_price
+        product.is_active = True
+        db.commit()
+        shop_runtime.reset()
     state=snapshot(db)
     await manager.broadcast_to_admins({"type":"SHOP_STATE","shop":state})
     return {"shop":state}
