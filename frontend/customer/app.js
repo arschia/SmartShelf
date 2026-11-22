@@ -8,6 +8,16 @@ let reconnectTimer = null;
 let reconnectAttempts = 0;
 let customerAuthTimer = null;
 let customerAuthConfirmed = false;
+let cartSyncTimer = null;
+let cartRevision = 0;
+let cartPending = false;
+function finishCartSync() {
+  clearInterval(cartSyncTimer);
+  cartSyncTimer = null;
+  currentSessionSecret = null;
+  clearTimeout(reconnectTimer);
+  socket?.close();
+}
 
 function updateWsBadge(status) {
   const badge = document.getElementById("wsBadge");
@@ -126,6 +136,7 @@ function renderCart(cartData) {
 }
 
 function renderInvoice(inv) {
+  finishCartSync();
   latestInvoice = inv;
 
   document.getElementById("stateLoading").style.display = "none";
@@ -199,6 +210,7 @@ async function performExitEmpty() {
       SmartShelfUI.showToast({message:data.detail || `خطا در ثبت خروج (HTTP ${res.status})`,type:"danger"});
       return;
     }
+    finishCartSync();
     document.getElementById("stateActive").style.display = "none";
     document.getElementById("customerActionBar").style.display = "none";
     document.getElementById("stateClosed").style.display = "block";
@@ -211,18 +223,33 @@ async function performExitEmpty() {
 }
 
 async function fetchLiveCart(secret) {
-  if (!secret) return;
+  if (!secret || cartPending) return;
+  cartPending = true;
+  const revision = cartRevision;
+  const request = new AbortController();
+  const timeout = setTimeout(() => request.abort(), 8000);
   try {
     const cartUrl = window.SmartShelfApi
       ? window.SmartShelfApi.apiUrl(`/api/customer/cart?secret=${encodeURIComponent(secret)}`)
       : `/api/customer/cart?secret=${encodeURIComponent(secret)}`;
-    const res = await fetch(cartUrl);
+    const res = await fetch(cartUrl, {cache:"no-store", signal:request.signal});
     if (res.ok) {
       const cart = await res.json();
-      renderCart(cart);
+      if (secret !== currentSessionSecret || revision !== cartRevision) return;
+      if (cart.session_closed) {
+        finishCartSync();
+        document.getElementById("stateActive").style.display = "none";
+        document.getElementById("customerActionBar").style.display = "none";
+        document.getElementById("stateClosed").style.display = "block";
+      } else if (JSON.stringify(cart.items) !== JSON.stringify(latestCart?.items) || cart.grand_total !== latestCart?.grand_total) {
+        renderCart(cart);
+      }
     }
   } catch (err) {
     console.error("Failed to fetch live cart:", err);
+  } finally {
+    clearTimeout(timeout);
+    cartPending = false;
   }
 }
 
@@ -274,6 +301,10 @@ async function initCustomerSession() {
     document.getElementById("sessionIdDisplay").textContent = `#${SmartShelfFormat.toPersianDigits(data.session_id)}`;
     document.getElementById("sessionTimeDisplay").textContent = SmartShelfFormat.formatJalali(data.entered_at, {hour:"2-digit",minute:"2-digit"});
     await fetchLiveCart(sessionSecret);
+    if (currentSessionSecret !== sessionSecret) return;
+    cartSyncTimer = setInterval(() => {
+      if (!document.hidden) fetchLiveCart(sessionSecret);
+    }, 3000);
     connectCustomerWs(sessionSecret);
   } catch (err) {
     stateLoading.style.display = "none";
@@ -313,6 +344,7 @@ function connectCustomerWs(sessionSecret) {
 
   socket.onmessage = (event) => {
     try {
+      if (currentSessionSecret !== sessionSecret) return;
       const msg = JSON.parse(event.data);
 
       if (msg.type === "CART_SYNC" || msg.type === "CART_UPDATED") {
@@ -321,11 +353,12 @@ function connectCustomerWs(sessionSecret) {
           if (customerAuthTimer) clearTimeout(customerAuthTimer);
           customerAuthTimer = null;
           updateWsBadge("online");
-          fetchLiveCart(sessionSecret);
+
         }
         const recEl = document.getElementById("recognizingProductAlert");
         if (recEl) recEl.style.display = "none";
 
+        cartRevision++;
         renderCart(msg.cart);
 
         if (msg.action === "PICKED") {
@@ -375,6 +408,7 @@ function connectCustomerWs(sessionSecret) {
         if (msg.exit_reason === "CHECKOUT" && msg.invoice) {
           renderInvoice(msg.invoice);
         } else {
+          finishCartSync();
           document.getElementById("stateActive").style.display = "none";
           document.getElementById("customerActionBar").style.display = "none";
           document.getElementById("stateClosed").style.display = "block";

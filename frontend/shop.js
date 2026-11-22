@@ -37,6 +37,16 @@ function render(shop){
   if(key!==lastEntryKey){lastEntryKey=key;refreshEntry().catch(e=>notice(e.message));}
   updateFrameButtons();draw();
 }
+async function configureScenario(settings){
+  const pending=new AbortController();
+  const timeout=setTimeout(()=>pending.abort(),12000);
+  try{
+    return await api('/api/shop/configure',{method:'POST',signal:pending.signal,body:JSON.stringify(settings)});
+  }catch(error){
+    if(error.name==='AbortError')throw new Error('پاسخ سرور نرسید؛ وضعیت سناریو را دوباره بررسی کنید.');
+    throw error;
+  }finally{clearTimeout(timeout);}
+}
 async function loadStatus(initial=false){
   const d=await api('/api/shop/status');products=d.products;zones=d.zones||[];
   if(initial){for(const [id,items] of [['product',d.products],['zone',d.zones]]){$(id).replaceChildren();for(const item of items){const option=document.createElement('option');option.value=String(item.id);option.textContent=item.name;$(id).appendChild(option);}}
@@ -266,7 +276,7 @@ async function startFrames(){
   finally { if(epoch===loopEpoch&&!working)updateFrameButtons(); }
 }
 function point(event){const r=canvas.getBoundingClientRect();return [Math.max(0,Math.min(1,(event.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(event.clientY-r.top)/r.height))];}
-canvas.addEventListener('pointerdown',e=>{if(state?.enabled||!preview)return;e.preventDefault();drag=point(e);canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointerdown',e=>{if(state?.enabled||(!preview&&!($('video').srcObject&&$('video').readyState>=2)))return;e.preventDefault();drag=point(e);canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=point(e);roi=[Math.min(p[0],drag[0]),Math.min(p[1],drag[1]),Math.abs(p[0]-drag[0]),Math.abs(p[1]-drag[1])];draw();});
 canvas.addEventListener('pointerup',()=>{if(drag){drag=null;$('roiConfirmed').checked=false;}});
 canvas.addEventListener('pointercancel',()=>{drag=null;});
@@ -338,10 +348,10 @@ $('enable').onclick=async()=>{
   try{
     const price=Number(SmartShelfFormat.normalizeDigits($('price').value));
     if(!Number.isInteger(price)||price<0)throw new Error('قیمت نمایشی باید یک عدد صحیح نامنفی باشد.');
-    const d=await api('/api/shop/configure',{method:'POST',body:JSON.stringify({
+    const d=await configureScenario({
       enabled:true,product_id:Number($('product').value),zone_id:Number($('zone').value),
       unit_price:price,camera_source:$('cameraSource').value,roi,roi_confirmed:$('roiConfirmed').checked
-    })});
+    });
     render(d.shop);
     notice('سناریو فعال شد؛ ارسال پیوستهٔ تصویر به‌صورت خودکار آغاز می‌شود.');
     // The calibration snapshot is not the AI frame stream.
@@ -362,7 +372,7 @@ $('disable').onclick=async()=>{
     : Promise.resolve(false);
   try{
     // Server-side stop is independent of the tablet and must be immediate.
-    const d=await api('/api/shop/configure',{method:'POST',body:JSON.stringify({enabled:false})});
+    const d=await configureScenario({enabled:false});
     render(d.shop);
     notice('سناریو در سرور متوقف شد؛ در حال توقف ارسال فریم تبلت…');
   }catch(e){notice(e.message);}
