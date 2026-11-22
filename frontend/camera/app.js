@@ -402,6 +402,14 @@ function connectCameraWs() {
           heartbeatInterval=setInterval(()=>{if(socket!==ws)return;if(Date.now()-lastServerMessage>12000||(awaitingFrameAck&&Date.now()-pendingFrameSince>10000)){useHttpsTransport("تأیید دریافت تصویر نرسید؛ ارسال HTTPS فعال شد.");return;}if(ws.readyState===WebSocket.OPEN)ws.send("ping");},5000);
         } else if(data.type==="frame_received"){
           awaitingFrameAck=false;confirmFrame();updateWsBadge("online");localStorage.setItem("smartshelf_tablet_connected","true");cameraDetail("تصویر زنده با WSS به سرور می‌رسد.");
+        } else if(data.type==="vision_control" && typeof data.enabled==="boolean"){
+          // The server controls AI JPEG upload even if WebRTC preview is down.
+          try{
+            setFrameTransmission(data.enabled);
+            if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"vision_control_ack",enabled:isStreamingActive}));
+          }catch(error){
+            if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"vision_control_ack",enabled:false,error:String(error.message||error)}));
+          }
         }
       }catch{}
     };
