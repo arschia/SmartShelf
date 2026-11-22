@@ -94,3 +94,16 @@ def test_https_control_poll_is_authenticated_and_revisioned(client):
     second = set_camera_control('control_tablet', True)
     assert second > first
     assert client.get(url, headers=headers).json()['enabled'] is True
+
+
+def test_wss_reconnect_receives_last_server_stop(client):
+    from backend.app.routes.camera_transport import set_camera_control
+    value = token('reconnect_control_tablet')
+    revision = set_camera_control('reconnect_control_tablet', False)
+    with client.websocket_connect('/ws/camera?device_id=reconnect_control_tablet') as ws:
+        ws.send_json({'type': 'auth', 'device_token': value})
+        assert ws.receive_json()['type'] == 'connected'
+        command = ws.receive_json()
+        assert command['type'] == 'vision_control'
+        assert command['enabled'] is False
+        assert command['revision'] == revision
