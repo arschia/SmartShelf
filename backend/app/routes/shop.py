@@ -44,8 +44,12 @@ class StreamControl(BaseModel):
 
 async def control_tablet_frames(enabled: bool):
     """WSS control does not depend on a WebRTC preview connection."""
-    from .camera_transport import set_camera_control
-    device_id = camera_feed.active_device_id
+    from .camera_transport import set_camera_control, latest_camera_control_device
+    # A paused HTTPS camera may not have uploaded any frame since backend restart.
+    device_id = (camera_feed.active_device_id if camera_feed.is_active(timeout_seconds=10)
+                 else latest_camera_control_device()
+                 or (next(iter(manager.camera_connections)) if len(manager.camera_connections) == 1 else None)
+                 or camera_feed.active_device_id)
     revision = set_camera_control(device_id, enabled)
     ws = manager.camera_connections.get(device_id) if device_id else None
     if not ws:
