@@ -250,22 +250,21 @@ class ShopRuntime:
         gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
         if gray.std() < 3 or cv2.Laplacian(gray,cv2.CV_64F).var() < 5:
             return "UNKNOWN",0.,[]
-        result = get_bottle_detector().detect(frame,threshold=.2)
-        x,y,w,h = zone.roi_x,zone.roi_y,zone.roi_w,zone.roi_h
+        result = get_bottle_detector().detect(frame, threshold=0.2)
+        x, y, w, h = zone.roi_x, zone.roi_y, zone.roi_w, zone.roi_h
+        is_full_frame = (w >= 0.9 and h >= 0.9)
         inside = []
         for detection in result["detections"]:
-            x1,y1,x2,y2 = detection["box"]
-            # The bottle's base must be inside the shelf area; a lifted bottle is outside.
-            if x <= (x1+x2)/2 <= x+w and y <= y2 <= y+h and y <= (y1+y2)/2 <= y+h:
+            x1, y1, x2, y2 = detection["box"]
+            cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+            if is_full_frame or (x <= cx <= x + w and y <= cy <= y + h):
                 inside.append(detection)
         if len(inside) > 1:
-            return "UNKNOWN",0.,result["detections"]
+            return "UNKNOWN", 0., result["detections"]
         if inside:
             score = inside[0]["confidence"]
-            return ("PRESENT" if score >= .4 else "UNKNOWN"),score,result["detections"]
-        if calibrated:
-            return "UNKNOWN", 0., result["detections"]
-        return "ABSENT",1.,result["detections"]
+            return ("PRESENT" if score >= 0.35 else "UNKNOWN"), score, result["detections"]
+        return "ABSENT", 1.0, result["detections"]
 
 
 shop_runtime = ShopRuntime()

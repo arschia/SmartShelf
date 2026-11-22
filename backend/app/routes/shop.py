@@ -132,7 +132,9 @@ async def configure(payload:Setup,db:Session=Depends(get_db)):
         if calibrated and any(abs(a-b) > 1e-6 for a,b in zip(
             (zone.roi_x, zone.roi_y, zone.roi_w, zone.roi_h), payload.roi
         )):
-            raise HTTPException(409, "محدودهٔ کالیبراسیون با کادر فعلی فرق دارد؛ ابتدا دوباره کالیبره کنید.")
+            zone.ref_full_features = None
+            zone.ref_empty_features = None
+            calibrated = False
         if not calibrated and not get_bottle_detector().status()["ready"]:
             raise HTTPException(503, "مدل بطری آماده نیست؛ یا با دو تصویر مرجع کالیبره کنید.")
         if not cfg:
