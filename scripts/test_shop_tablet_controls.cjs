@@ -24,6 +24,11 @@ function environment(mode='live'){
     setTimeout:(fn,ms)=>setTimeout(fn,ms>=10000?10000:Math.min(ms,15)),
     fetch:async(url,options)=>{
       assert.equal(options.headers.Authorization,'Bearer admin');if(options.method==='POST')posts++;
+      if(url.endsWith('/api/shop/configure')){
+        const payload=JSON.parse(options.body);
+        shop.enabled=payload.enabled;
+        return {ok:true,json:async()=>({shop})};
+      }
       if(url.endsWith('/api/admin/camera/status')){
         polls++;if(mode==='late')await new Promise(resolve=>{release=resolve;});
         return {ok:true,json:async()=>({device_id:mode==='other'?'another-tablet':'paired-tablet',frame_count:mode==='frozen'?10:polls+10,is_live:true,fps:5})};
@@ -43,6 +48,20 @@ function environment(mode='live'){
   await live.element('stopCamera').onclick();await running;
   assert.deepEqual(live.commands,[true,false]);assert.equal(live.videoStops(),0,'AI pause must preserve live video');assert.equal(live.element('startCamera').disabled,false);
   assert.match(live.element('cameraStatus').textContent,/توقف ارسال فریم/);
+
+  // Operator buttons must start AI frames automatically and stop tablet
+  // processing before the WebRTC viewer is released.
+  const automatic=environment();
+  automatic.run('initial.enabled=false;render(initial)');
+  automatic.element('cameraSource').value='tablet';
+  automatic.element('roiConfirmed').checked=true;
+  await automatic.element('enable').onclick();
+  await until(()=>automatic.commands.includes(true)&&automatic.polls()>0);
+  assert.equal(automatic.element('startCamera').disabled,true,'auto-start should own the loop');
+  await automatic.element('disable').onclick();
+  assert.deepEqual(automatic.commands,[true,false],'scenario stop must send remote stop');
+  assert(automatic.videoStops()>0,'viewer must be released after stop acknowledgment');
+  assert.equal(automatic.element('disable').disabled,true,'stopped scenario cannot stop twice');
 
   for(const mode of ['frozen','other']){
     const e=environment(mode),running=e.run('startFrames()');await until(()=>e.polls()>=3);
