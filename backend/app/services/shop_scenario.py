@@ -231,6 +231,10 @@ async def process_shop_frame(frame, db, source, sequence=None):
     zone = db.get(Zone,cfg.zone_id)
     if not zone:
         return {"accepted":False}
+    # Snapshot generation before releasing the event loop for inference.
+    # SQLAlchemy refreshes cfg on expire_all(), so comparing cfg.generation
+    # after inference would otherwise compare the new value to itself.
+    expected_generation = cfg.generation
     try:
         # ONNX inference is CPU-bound and must not block stop/configure,
         # WebSocket delivery or other frame requests on the event loop.
@@ -243,7 +247,7 @@ async def process_shop_frame(frame, db, source, sequence=None):
     # Never commit a stale detection to a newly started scenario.
     db.expire_all()
     latest = configuration(db)
-    if not latest or not latest.enabled or latest.generation != cfg.generation:
+    if not latest or not latest.enabled or latest.generation != expected_generation:
         return {"accepted": False, "reason": "SCENARIO_CHANGED"}
     result = shop_runtime.observe(db,observation,confidence,source,sequence)
     if not result.get("accepted"):
