@@ -8,6 +8,7 @@ from __future__ import annotations
 import secrets
 import time
 import asyncio
+import json
 from typing import Optional
 
 import cv2
@@ -15,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from ..models import ShopScenario, Product, Zone, CustomerSession, CartItem, Event, utc_now
 from ..vision.bottle_detector import get_bottle_detector
+from ..vision.two_reference import is_two_reference, classify_frame, crop_roi, PresenceFeatureError
 from ..vision.state_machine import ZoneStateMachine, SlotState
 from ..ws import manager
 from .event_service import get_cart_summary
@@ -202,6 +204,18 @@ class ShopRuntime:
         return {"accepted":True,"state":sm.get_display_state(),"events":events,"cart_info":cart_info}
 
     def classify(self, frame, cfg, zone):
+        # A calibrated Windows-local shelf uses the same two-reference occupancy
+        # engine as the fixed ZIP. WebRTC is only a preview; camera WSS/HTTPS
+        # JPEG frames are the sole source of accounting transitions.
+        try:
+            full = json.loads(zone.ref_full_features or "null")
+            empty = json.loads(zone.ref_empty_features or "null")
+            if is_two_reference(full) and is_two_reference(empty):
+                cropped = crop_roi(frame, [zone.roi_x, zone.roi_y, zone.roi_w, zone.roi_h])
+                state, confidence, _ = classify_frame(cropped, full, empty)
+                return state, confidence, []
+        except (ValueError, TypeError, json.JSONDecodeError, PresenceFeatureError):
+            return "UNKNOWN", 0.0, []
         gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
         if gray.std() < 3 or cv2.Laplacian(gray,cv2.CV_64F).var() < 5:
             return "UNKNOWN",0.,[]
