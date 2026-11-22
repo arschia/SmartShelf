@@ -135,11 +135,18 @@ canvas.addEventListener('pointerup',event=>{if(!pointerStart)return;const [x,y]=
 canvas.addEventListener('pointercancel',()=>{pointerStart=null;draw();});
 $('clearBoxes').onclick=()=>{boxes=[];$('reviewed').checked=false;renderBoxes();draw();};
 $('photo').onchange=async()=>{try{stopLive();const file=$('photo').files[0];if(!file)return;if(file.size>20*1024*1024)throw new Error('عکس باید کوچک‌تر از ۲۰ مگابایت باشد.');const bitmap=await createImageBitmap(file);const c=document.createElement('canvas');const scale=Math.min(1,1600/Math.max(bitmap.width,bitmap.height));c.width=Math.round(bitmap.width*scale);c.height=Math.round(bitmap.height*scale);c.getContext('2d').drawImage(bitmap,0,0,c.width,c.height);bitmap.close();await setImage(c.toDataURL('image/jpeg',.94));message('');}catch(e){message(e.message);}};
-$('camera').onclick=async()=>{stopLive();try{await openCamera();message('');}catch(e){message(`دوربین باز نشد: ${e.message}`);}};
+$('camera').onclick=()=>{if(live)stopLive();$('liveSource').value='local';return startLive();};
 $('snapshot').onclick=async()=>{stopLive();try{await setImage(captureFrame());message('عکس گرفته شد. برای تشخیص، «تشخیص این عکس» را بزنید.');}catch(e){message(e.message);}};
 $('detect').onclick=()=>detect();
 $('live').onclick=startLive;
-$('stop').onclick=()=>stopLive();
+$('stop').onclick=()=>{
+  stopLive();
+  stream?.getTracks().forEach(track=>track.stop());
+  stream=null;
+  $('video').srcObject=null;
+  $('video').hidden=true;
+  $('snapshot').disabled=true;
+};
 $('annotationMode').onchange=updateAnnotationMode;
 $('liveSource').onchange=()=>{$('liveSourceHint').textContent=$('liveSource').value==='local'?'دوربین همین مرورگر استفاده می‌شود؛ جفت‌کردن تبلت لازم نیست.':'صفحهٔ /camera/ باید روی تبلت باز، جفت‌شده و در حال ارسال تصویر باشد. با همین گزینه دوربین این صفحه باز نمی‌شود.';};
 $('threshold').oninput=()=>{$('thresholdValue').textContent=Number($('threshold').value).toLocaleString('fa-IR');};

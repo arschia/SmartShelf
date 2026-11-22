@@ -129,6 +129,10 @@ def presence_action(
         raise HTTPException(status_code=404, detail="جایگاه موردنظر پیدا نشد")
 
     if mode == "calibrate":
+        # Never change references while a live customer could be charged.
+        from ..services.shop_scenario import demo_enabled
+        if demo_enabled(db):
+            raise HTTPException(status_code=409, detail="ابتدا سناریو را متوقف کنید، سپس دوباره کالیبره کنید.")
         if payload.present is None or payload.empty is None:
             raise HTTPException(status_code=422, detail="هر دو تصویر مرجعِ محصول حاضر و جایگاه خالی لازم است")
         present_image = _decode_image(payload.present)

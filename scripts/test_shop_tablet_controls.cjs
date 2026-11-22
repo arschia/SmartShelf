@@ -23,7 +23,16 @@ function environment(mode='live'){
     SmartShelfFormat:{normalizeDigits:s=>s},Date,AbortController,console,clearTimeout,setInterval:()=>1,clearInterval(){},
     setTimeout:(fn,ms)=>setTimeout(fn,ms>=10000?10000:Math.min(ms,15)),
     fetch:async(url,options)=>{
-      assert.equal(options.headers.Authorization,'Bearer admin');if(options.method==='POST')posts++;
+      assert.equal(options.headers.Authorization,'Bearer admin');if(url.endsWith('/api/shop/frame'))posts++;
+      if(url.endsWith('/api/shop/stream')){
+        commands.push('wss:'+JSON.parse(options.body).enabled);
+        return {ok:true,json:async()=>({command_sent:true,device_id:'paired-tablet'})};
+      }
+      if(url.endsWith('/api/shop/configure')){
+        const payload=JSON.parse(options.body);
+        shop.enabled=payload.enabled;
+        return {ok:true,json:async()=>({shop})};
+      }
       if(url.endsWith('/api/admin/camera/status')){
         polls++;if(mode==='late')await new Promise(resolve=>{release=resolve;});
         return {ok:true,json:async()=>({device_id:mode==='other'?'another-tablet':'paired-tablet',frame_count:mode==='frozen'?10:polls+10,is_live:true,fps:5})};
@@ -37,12 +46,26 @@ function environment(mode='live'){
 (async()=>{
   const live=environment(),running=live.run('startFrames()');
   await until(()=>live.element('cameraStatus').textContent.includes('فریم تازهٔ تبلت به سرور رسید'));
-  assert.deepEqual(live.commands,[true]);assert.equal(live.element('startCamera').disabled,true);
+  assert.deepEqual(live.commands,[true,'wss:true']);assert.equal(live.element('startCamera').disabled,true);
   assert.equal(live.posts(),0,'admin must not submit duplicate WebRTC frames to the accounting pipeline');
   assert.match(live.element('cameraStatus').textContent,/تشخیص برداشت و برگشت فعال/);
   await live.element('stopCamera').onclick();await running;
-  assert.deepEqual(live.commands,[true,false]);assert.equal(live.videoStops(),0,'AI pause must preserve live video');assert.equal(live.element('startCamera').disabled,false);
-  assert.match(live.element('cameraStatus').textContent,/توقف ارسال فریم/);
+  assert.deepEqual(live.commands,[true,'wss:true','wss:false',false]);assert.equal(live.videoStops(),0,'AI pause must preserve live video');assert.equal(live.element('startCamera').disabled,false);
+  assert.match(live.element('cameraStatus').textContent,/فرمان توقف به سرور|توقف ارسال فریم/);
+
+  // Operator buttons must start AI frames automatically and stop tablet
+  // processing before the WebRTC viewer is released.
+  const automatic=environment();
+  automatic.run('initial.enabled=false;render(initial)');
+  automatic.element('cameraSource').value='tablet';
+  automatic.element('roiConfirmed').checked=true;
+  await automatic.element('enable').onclick();
+  await until(()=>automatic.commands.includes(true)&&automatic.polls()>0);
+  assert.equal(automatic.element('startCamera').disabled,true,'auto-start should own the loop');
+  await automatic.element('disable').onclick();
+  assert.deepEqual(automatic.commands,[true,'wss:true',false],'scenario stop must send remote stop');
+  assert(automatic.videoStops()>0,'viewer must be released after stop acknowledgment');
+  assert.equal(automatic.element('disable').disabled,true,'stopped scenario cannot stop twice');
 
   for(const mode of ['frozen','other']){
     const e=environment(mode),running=e.run('startFrames()');await until(()=>e.polls()>=3);
@@ -50,9 +73,11 @@ function environment(mode='live'){
     if(mode==='other')assert.match(e.element('cameraStatus').textContent,/دوربین دیگری/);
     await e.run('stopFrames()');await running;
   }
-  const rejected=environment('rejected');await rejected.run('startFrames()');
-  assert.equal(rejected.polls(),0);assert.equal(rejected.element('startCamera').disabled,false);
-  assert.match(rejected.element('message').textContent,/tablet refused command/);
+  const rejected=environment('rejected'),fallback=rejected.run('startFrames()');
+  await until(()=>rejected.polls()>=3);
+  assert(rejected.commands.includes('wss:true'),'WebRTC failure must not block server-controlled JPEG frames');
+  assert.match(rejected.element('videoStatus').textContent,/JPEG/);
+  await rejected.run('stopFrames()');await fallback;
 
   const late=environment('late'),pending=late.run('startFrames()');await until(()=>late.polls()===1);
   await late.run('stopFrames()');late.release();await pending;

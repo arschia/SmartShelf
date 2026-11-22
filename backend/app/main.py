@@ -439,6 +439,12 @@ async def websocket_camera_endpoint(
         device.last_seen = now
     db.commit()
     await websocket.send_json({"type": "connected", "device_id": device_id, "frame_ack":frame_ack_requested})
+    # Reapply the last server-side stop/start after tablet WSS reconnection.
+    # A reconnected camera must not silently resume a paused AI scenario.
+    from .routes.camera_transport import desired_camera_control
+    desired = desired_camera_control(device_id)
+    if desired["enabled"] is not None:
+        await websocket.send_json({"type": "vision_control", **desired})
 
     # Record DEVICE_CONNECTED operational event
     conn_evt = record_system_event(

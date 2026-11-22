@@ -356,6 +356,7 @@ let cameraConnectTimer = null;
 let cameraAuthConfirmed = false;
 let cameraReconnectDelay = 1000;
 let cameraTransport = "wss";
+let lastControlRevision = 0, controlPollBusy = false, controlPollTimer = null;
 let cameraPageActive = true;
 let serverFrameAck = false;
 let lastServerMessage = 0;
@@ -373,6 +374,30 @@ function useHttpsTransport(reason) {
   if(!cameraPageActive)return;
   resetCameraConnection();cameraTransport="https";
   updateWsBadge("connecting");cameraDetail(reason||"WSS پاسخ نداد؛ در حال ارسال تصویر از HTTPS…");
+}
+async function pollHttpsCameraControl(){
+  if(!cameraPageActive||cameraTransport!=="https"||controlPollBusy)return;
+  const token=localStorage.getItem("smartshelf_device_token");
+  if(!token)return;
+  controlPollBusy=true;
+  const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),3500);
+  try{
+    const response=await fetch(window.SmartShelfApi.apiUrl(
+      `/api/camera/control?device_id=${encodeURIComponent(deviceId)}`),{
+      headers:{Authorization:`Bearer ${token}`},cache:"no-store",signal:controller.signal
+    });
+    if(!response.ok)return;
+    const command=await response.json();
+    if(Number.isInteger(command.revision)&&command.revision>lastControlRevision
+       &&typeof command.enabled==="boolean"){
+      setFrameTransmission(command.enabled);
+      lastControlRevision=command.revision;
+      cameraDetail(command.enabled
+        ? "فرمان شروع از سرور HTTPS دریافت شد؛ فریم‌ها برای هوش مصنوعی ارسال می‌شوند."
+        : "فرمان توقف از سرور HTTPS دریافت شد؛ ارسال فریم هوش مصنوعی متوقف است.");
+    }
+  }catch(error){/* Retry; a lost control response is never a purchase. */}
+  finally{clearTimeout(deadline);controlPollBusy=false;}
 }
 function connectCameraWs() {
   const deviceToken=localStorage.getItem("smartshelf_device_token");
@@ -402,6 +427,15 @@ function connectCameraWs() {
           heartbeatInterval=setInterval(()=>{if(socket!==ws)return;if(Date.now()-lastServerMessage>12000||(awaitingFrameAck&&Date.now()-pendingFrameSince>10000)){useHttpsTransport("تأیید دریافت تصویر نرسید؛ ارسال HTTPS فعال شد.");return;}if(ws.readyState===WebSocket.OPEN)ws.send("ping");},5000);
         } else if(data.type==="frame_received"){
           awaitingFrameAck=false;confirmFrame();updateWsBadge("online");localStorage.setItem("smartshelf_tablet_connected","true");cameraDetail("تصویر زنده با WSS به سرور می‌رسد.");
+        } else if(data.type==="vision_control" && typeof data.enabled==="boolean"){
+          // The server controls AI JPEG upload even if WebRTC preview is down.
+          try{
+            setFrameTransmission(data.enabled);
+            if(Number.isInteger(data.revision))lastControlRevision=Math.max(lastControlRevision,data.revision);
+            if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"vision_control_ack",enabled:isStreamingActive}));
+          }catch(error){
+            if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:"vision_control_ack",enabled:false,error:String(error.message||error)}));
+          }
         }
       }catch{}
     };
@@ -417,6 +451,7 @@ function connectCameraWs() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  controlPollTimer=setInterval(pollHttpsCameraControl,1200);
   document.getElementById("deviceIdText").textContent = deviceId;
   applyLanguage(currentLang);
 
@@ -504,7 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("retryTransportBtn")?.addEventListener("click",()=>{resetCameraConnection();connectCameraWs();});
 
   window.addEventListener("pagehide", () => {
-    cameraPageActive=false;frameUploadController?.abort();
+    cameraPageActive=false;clearInterval(controlPollTimer);frameUploadController?.abort();
     tabletRtcPublisher?.stop();
     clearTimeout(cameraConnectTimer);
     if (captureInterval) clearInterval(captureInterval);

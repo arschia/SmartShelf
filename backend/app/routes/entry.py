@@ -374,7 +374,7 @@ def get_customer_cart(
     session = db.query(CustomerSession).filter_by(session_secret=secret).first()
     if not session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-    return get_cart_summary(db, session.id)
+    return {**get_cart_summary(db, session.id), "session_closed": session.status == "CLOSED"}
 
 
 def format_invoice_dict(invoice: Invoice) -> dict:

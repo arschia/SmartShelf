@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import secrets
 import time
+import asyncio
+import json
 from typing import Optional
 
 import cv2
@@ -14,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from ..models import ShopScenario, Product, Zone, CustomerSession, CartItem, Event, utc_now
 from ..vision.bottle_detector import get_bottle_detector
+from ..vision.two_reference import is_two_reference, classify_frame, crop_roi, PresenceFeatureError
 from ..vision.state_machine import ZoneStateMachine, SlotState
 from ..ws import manager
 from .event_service import get_cart_summary
@@ -37,7 +40,13 @@ def snapshot(db):
     customer = active_customer(db)
     product = db.get(Product, cfg.product_id) if cfg and cfg.product_id else None
     zone = db.get(Zone, cfg.zone_id) if cfg and cfg.zone_id else None
+    try:
+        calibrated = bool(zone and is_two_reference(json.loads(zone.ref_full_features or "null"))
+                          and is_two_reference(json.loads(zone.ref_empty_features or "null")))
+    except (ValueError, TypeError):
+        calibrated = False
     return {"enabled": bool(cfg and cfg.enabled), "demo": True,
+            "calibrated": calibrated, "vision_mode": "two_reference" if calibrated else "onnx",
             "camera_source": cfg.camera_source if cfg else "browser",
             "zone_id": cfg.zone_id if cfg else None,
             "product_id": cfg.product_id if cfg else None,
@@ -48,6 +57,7 @@ def snapshot(db):
             "roi": [zone.roi_x,zone.roi_y,zone.roi_w,zone.roi_h] if zone else [0,0,1,1],
             "state": shop_runtime.machine.get_display_state() if shop_runtime.machine else "UNKNOWN",
             "camera_live": shop_runtime.is_fresh(),
+            "frames_processed": shop_runtime.processed_frames,
             "session_id": customer.id if customer else None,
             "cart": get_cart_summary(db, customer.id) if customer else None}
 
@@ -65,6 +75,7 @@ class ShopRuntime:
         self.machine = None
         self.generation = None
         self.last_frame = None
+        self.processed_frames = 0
         self.source_owner = None
         self.last_sequence = -1
         self.candidate_frames = 0
@@ -118,6 +129,7 @@ class ShopRuntime:
         if self.last_frame is not None and now-self.last_frame > self.MAX_GAP:
             self.break_continuity()
         self.last_frame = now
+        self.processed_frames += 1
         if not self.machine:
             self.machine = ZoneStateMachine(cfg.zone_id, stable_seconds=self.STABLE_SECONDS, clock=self.clock)
         sm = self.machine
@@ -160,7 +172,8 @@ class ShopRuntime:
             event_status = "BASELINE" if baseline else "STOCK_ONLY"
             event_session = None
             if baseline:
-                # No retrospective purchases/returns inferred across outages/restarts.
+                # A pause/restart is not a purchase. Preserve the last confirmed
+                # inventory, and flag an actual change during the interruption.
                 if old_quantity is not None and old_quantity != quantity:
                     cfg.needs_review = True
                     event_status = "OFFLINE_CHANGE"
@@ -200,6 +213,18 @@ class ShopRuntime:
         return {"accepted":True,"state":sm.get_display_state(),"events":events,"cart_info":cart_info}
 
     def classify(self, frame, cfg, zone):
+        # A calibrated Windows-local shelf uses the same two-reference occupancy
+        # engine as the fixed ZIP. WebRTC is only a preview; camera WSS/HTTPS
+        # JPEG frames are the sole source of accounting transitions.
+        try:
+            full = json.loads(zone.ref_full_features or "null")
+            empty = json.loads(zone.ref_empty_features or "null")
+            if is_two_reference(full) and is_two_reference(empty):
+                cropped = crop_roi(frame, [zone.roi_x, zone.roi_y, zone.roi_w, zone.roi_h])
+                state, confidence, _ = classify_frame(cropped, full, empty)
+                return state, confidence, []
+        except (ValueError, TypeError, json.JSONDecodeError, PresenceFeatureError):
+            return "UNKNOWN", 0.0, []
         gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
         if gray.std() < 3 or cv2.Laplacian(gray,cv2.CV_64F).var() < 5:
             return "UNKNOWN",0.,[]
@@ -229,10 +254,24 @@ async def process_shop_frame(frame, db, source, sequence=None):
     zone = db.get(Zone,cfg.zone_id)
     if not zone:
         return {"accepted":False}
+    # Snapshot generation before releasing the event loop for inference.
+    # SQLAlchemy refreshes cfg on expire_all(), so comparing cfg.generation
+    # after inference would otherwise compare the new value to itself.
+    expected_generation = cfg.generation
     try:
-        observation, confidence, detections = shop_runtime.classify(frame,cfg,zone)
+        # ONNX inference is CPU-bound and must not block stop/configure,
+        # WebSocket delivery or other frame requests on the event loop.
+        observation, confidence, detections = await asyncio.to_thread(
+            shop_runtime.classify, frame, cfg, zone
+        )
     except Exception:
         observation, confidence, detections = "UNKNOWN",0.,[]
+    # The scenario may have been stopped/reconfigured while inference ran.
+    # Never commit a stale detection to a newly started scenario.
+    db.expire_all()
+    latest = configuration(db)
+    if not latest or not latest.enabled or latest.generation != expected_generation:
+        return {"accepted": False, "reason": "SCENARIO_CHANGED"}
     result = shop_runtime.observe(db,observation,confidence,source,sequence)
     if not result.get("accepted"):
         return result

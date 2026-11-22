@@ -12,7 +12,7 @@
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const updateRequired = response.status === 404 && (path === '/view' || path.startsWith('/camera/poll'));
-        const error = new Error(updateRequired ? 'بک‌اند WebRTC نصب نیست؛ بستهٔ 1.4.0 را روی Windows اعمال و بک‌اند را دوباره اجرا کنید.' : response.status === 404 ? 'نشست نمایش دوربین پایان یافته؛ اتصال دوباره انجام می‌شود.' : typeof data.detail === 'string' ? data.detail : `خطای اتصال (${response.status})`);
+        const error = new Error(updateRequired ? 'مسیر سیگنالینگ WebRTC در بک‌اند پیدا نشد؛ نسخه فرانت‌اند و بک‌اند را یکسان نصب کنید. ارسال فریم هوش مصنوعی از WSS/HTTPS مستقل است.' : response.status === 404 ? 'نشست نمایش دوربین پایان یافته؛ اتصال دوباره انجام می‌شود.' : typeof data.detail === 'string' ? data.detail : `خطای اتصال (${response.status})`);
         error.status = response.status; error.updateRequired = updateRequired; throw error;
       }
       return await response.json();
@@ -126,10 +126,11 @@
     }
     stop() { this.active = false; this.epoch++; this.release(); this.onState('stopped', 'نمایش ویدیوی زنده متوقف است.'); }
     async play() { await this.video.play(); }
-    async setProcessing(enabled) {
-      const epoch = this.epoch, deadline = Date.now() + 22000;
-      while (this.active && epoch === this.epoch && this.control?.readyState !== 'open' && Date.now() < deadline) await sleep(100);
-      if (!this.active || epoch !== this.epoch || this.control?.readyState !== 'open') throw new Error('کانال کنترل تبلت آماده نیست؛ اتصال ویدیوی زنده را بررسی کنید.');
+    async setProcessing(enabled, isCurrent = () => true) {
+      const epoch = this.epoch, deadline = Date.now() + 8000;
+      while (this.active && epoch === this.epoch && isCurrent() && this.control?.readyState !== 'open' && Date.now() < deadline) await sleep(100);
+      if (!this.active || epoch !== this.epoch || !isCurrent()) throw new Error('فرمان قدیمی لغو شد.');
+      if (this.control?.readyState !== 'open') throw new Error('کانال کنترل تبلت آماده نیست؛ اتصال ویدیوی زنده را بررسی کنید.');
       const id = `${epoch}-${++this.controlSeq}`;
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => {this.commands.delete(id);reject(new Error('فرمان از تبلت تأیید نشد؛ صفحهٔ دوربین تبلت را با نسخهٔ 1.4.1 دوباره باز کنید.'));}, 6000);
@@ -208,7 +209,7 @@
           await sleep(this.peers.size ? 600 : 1200);
         } catch (error) {
           if (!this.active || epoch !== this.epoch) break;
-          this.onState('error', error.status === 404 ? 'برای پخش WebRTC، بک‌اند Windows را به 1.4.0 به‌روز کنید؛ ارسال فریم هوش مصنوعی ادامه دارد.' : 'ارتباط نمایش زنده قطع شد؛ تلاش مجدد خودکار…');
+          this.onState('error', error.status === 404 ? 'مسیر WebRTC در بک‌اند پیدا نشد؛ پیش‌نمایش JPEG جایگزین را در صفحه فروشگاه بررسی کنید.' : 'ارتباط نمایش زنده قطع شد؛ تلاش مجدد خودکار…');
           await sleep(error.status === 404 ? 15000 : 2500);
         }
       }

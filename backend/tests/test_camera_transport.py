@@ -75,3 +75,35 @@ def test_https_fallback_updates_real_customer_cart_over_websocket(client,db_sess
                 update=ws.receive_json();assert update['action']=='PICKED' and update['cart']['total_quantity']==1
             if i==8:
                 update=ws.receive_json();assert update['action']=='RETURNED' and update['cart']['total_quantity']==0
+
+
+def test_https_control_poll_is_authenticated_and_revisioned(client):
+    from backend.app.routes.camera_transport import set_camera_control
+    value = token('control_tablet')
+    url = '/api/camera/control?device_id=control_tablet'
+    headers = {'Authorization': 'Bearer ' + value}
+    assert client.get(url).status_code == 401
+    assert client.get('/api/camera/control?device_id=other', headers=headers).status_code == 401
+    before = client.get(url, headers=headers)
+    assert before.status_code == 200
+    assert before.json()['enabled'] is None
+    first = set_camera_control('control_tablet', False)
+    result = client.get(url, headers=headers)
+    assert result.status_code == 200
+    assert result.json() == {'revision': first, 'enabled': False}
+    second = set_camera_control('control_tablet', True)
+    assert second > first
+    assert client.get(url, headers=headers).json()['enabled'] is True
+
+
+def test_wss_reconnect_receives_last_server_stop(client):
+    from backend.app.routes.camera_transport import set_camera_control
+    value = token('reconnect_control_tablet')
+    revision = set_camera_control('reconnect_control_tablet', False)
+    with client.websocket_connect('/ws/camera?device_id=reconnect_control_tablet') as ws:
+        ws.send_json({'type': 'auth', 'device_token': value})
+        assert ws.receive_json()['type'] == 'connected'
+        command = ws.receive_json()
+        assert command['type'] == 'vision_control'
+        assert command['enabled'] is False
+        assert command['revision'] == revision
