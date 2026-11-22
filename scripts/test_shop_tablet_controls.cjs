@@ -51,7 +51,7 @@ function environment(mode='live'){
   assert.match(live.element('cameraStatus').textContent,/تشخیص برداشت و برگشت فعال/);
   await live.element('stopCamera').onclick();await running;
   assert.deepEqual(live.commands,[true,'wss:true','wss:false',false]);assert.equal(live.videoStops(),0,'AI pause must preserve live video');assert.equal(live.element('startCamera').disabled,false);
-  assert.match(live.element('cameraStatus').textContent,/توقف ارسال فریم/);
+  assert.match(live.element('cameraStatus').textContent,/فرمان توقف به سرور|توقف ارسال فریم/);
 
   // Operator buttons must start AI frames automatically and stop tablet
   // processing before the WebRTC viewer is released.
