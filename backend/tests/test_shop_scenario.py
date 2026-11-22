@@ -149,3 +149,51 @@ def test_real_routes_push_pick_and_return_to_customer_without_refresh(demo,clien
             messages.append(admin_ws.receive_json())
         assert any(m.get('type')=='SHOP_STATE' and m['shop']['stock_quantity']==0 for m in messages)
     demo.db.expire_all();assert demo.db.get(Product,demo.product.id).stock_quantity==1
+
+
+def test_pause_resume_same_shelf_keeps_cart_and_stock(demo, client, auth_headers, monkeypatch):
+    customer = demo.customer()
+    demo.feed('PRESENT')
+    demo.feed('ABSENT')
+    assert quantity(demo, customer) == 1
+    product_stock = demo.product.stock_quantity
+    stopped = client.post('/api/shop/configure', headers=auth_headers, json={'enabled': False})
+    assert stopped.status_code == 200
+    demo.db.refresh(demo.cfg)
+    assert not demo.cfg.enabled
+    assert demo.cfg.pick_session_id == customer.id
+    assert demo.cfg.stock_quantity == 0
+
+    monkeypatch.setattr(routes, 'get_bottle_detector',
+                        lambda: SimpleNamespace(status=lambda: {'ready': True}))
+    zone = demo.db.get(Zone, demo.cfg.zone_id)
+    resumed = client.post('/api/shop/configure', headers=auth_headers, json={
+        'enabled': True, 'product_id': demo.product.id, 'zone_id': zone.id,
+        'camera_source': 'browser', 'roi_confirmed': True,
+        'roi': [zone.roi_x, zone.roi_y, zone.roi_w, zone.roi_h],
+    })
+    assert resumed.status_code == 200
+    demo.db.refresh(demo.cfg)
+    assert demo.cfg.enabled
+    assert demo.cfg.stock_quantity == 0
+    assert demo.cfg.pick_session_id == customer.id
+    assert quantity(demo, customer) == 1
+    assert demo.product.stock_quantity == product_stock
+
+    # First observation after resume is only a baseline, not a new sale.
+    demo.feed('ABSENT')
+    assert quantity(demo, customer) == 1
+    demo.feed('PRESENT')
+    assert quantity(demo, customer) == 0
+
+
+def test_resume_with_active_customer_rejects_changed_product(demo, client, auth_headers):
+    demo.customer()
+    demo.db.add(Product(name='Other bottle', sku='OTHER-RESUME', unit_price=10))
+    demo.db.commit()
+    other = demo.db.query(Product).filter_by(sku='OTHER-RESUME').one()
+    response = client.post('/api/shop/configure', headers=auth_headers, json={
+        'enabled': True, 'product_id': other.id, 'zone_id': demo.cfg.zone_id,
+        'roi_confirmed': True,
+    })
+    assert response.status_code == 409
