@@ -1,5 +1,6 @@
 """Authenticated HTTPS fallback for devices whose network cannot keep WSS open."""
 import re
+import time
 from fastapi import APIRouter,Request,Depends,HTTPException,Response
 from sqlalchemy.orm import Session
 from ..db import get_db
@@ -22,6 +23,7 @@ def authenticate(request,device_id):
 # Bounded in-memory desired AI-upload state for HTTPS-only tablets.
 # Authentication is identical to the camera frame upload route.
 _desired_controls = {}
+_recent_control_poll = {}
 _control_revision = 0
 
 
@@ -36,9 +38,19 @@ def set_camera_control(device_id: str, enabled: bool):
     return _control_revision
 
 
+def latest_camera_control_device():
+    now = time.monotonic()
+    fresh = [(when, device_id) for device_id, when in _recent_control_poll.items()
+             if now - when < 10]
+    return max(fresh)[1] if fresh else None
+
+
 @router.get('/control')
 def camera_control(request: Request, response: Response, device_id: str):
     authenticate(request, device_id)
+    if len(_recent_control_poll) >= 32 and device_id not in _recent_control_poll:
+        _recent_control_poll.pop(min(_recent_control_poll, key=_recent_control_poll.get))
+    _recent_control_poll[device_id] = time.monotonic()
     response.headers['Cache-Control'] = 'no-store'
     return _desired_controls.get(device_id, {"revision": 0, "enabled": None})
 
