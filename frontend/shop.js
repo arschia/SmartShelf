@@ -117,7 +117,7 @@ async function showTabletVideo(){
   stopVideoPreview();
   if(!window.SmartShelfRTC)throw new Error('صفحه را دوباره باز کنید تا ابزار WebRTC بارگذاری شود.');
   tabletViewer=new window.SmartShelfRTC.Viewer({video:$('video'),getToken:()=>token,
-    onState:(state,text)=>{$('video').hidden=!['live','play'].includes(state);$('videoStatus').textContent=text;},
+    onState:(state,text)=>{$('video').hidden=!['live','play'].includes(state);$('videoStatus').textContent=text;if(state==='live'||state==='play')keepPreviewLive();},
     onStats:stats=>{if(stats.width)$('videoStatus').textContent=`WebRTC · ${stats.width}×${stats.height} · ${stats.fps.toFixed(1)} FPS`;}});
   await tabletViewer.start();
   keepPreviewLive();
