@@ -217,9 +217,12 @@ def test_tablet_ai_control_does_not_require_webrtc(demo, client, auth_headers, m
     assert response.status_code == 200
     assert response.json()["command_sent"] is True
     assert response.json()["device_id"] == "paired-tablet"
-    assert camera.commands[-1] == {"type": "vision_control", "enabled": True}
+    assert camera.commands[-1]["type"] == "vision_control"
+    assert camera.commands[-1]["enabled"] is True
+    assert camera.commands[-1]["revision"] >= 1
 
     response = client.post("/api/shop/configure", headers=auth_headers, json={"enabled": False})
     assert response.status_code == 200
-    assert camera.commands[-1] == {"type": "vision_control", "enabled": False}
+    assert camera.commands[-1]["enabled"] is False
+    assert camera.commands[-1]["revision"] >= 2
     assert demo.db.get(ShopScenario, 1).enabled is False
