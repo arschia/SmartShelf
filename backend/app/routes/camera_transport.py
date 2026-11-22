@@ -1,6 +1,6 @@
 """Authenticated HTTPS fallback for devices whose network cannot keep WSS open."""
 import re
-from fastapi import APIRouter,Request,Depends,HTTPException
+from fastapi import APIRouter,Request,Depends,HTTPException,Response
 from sqlalchemy.orm import Session
 from ..db import get_db
 from ..models import Device,utc_now
@@ -17,6 +17,30 @@ def authenticate(request,device_id):
     info=get_device_info_by_token(token)
     if not re.fullmatch(r'[A-Za-z0-9_-]{3,50}',device_id) or not info or info['device_id']!=device_id:
         raise HTTPException(401,'جفت‌سازی دوربین معتبر نیست؛ یک کد جفت‌سازی تازه از پنل بگیرید.')
+
+
+# Bounded in-memory desired AI-upload state for HTTPS-only tablets.
+# Authentication is identical to the camera frame upload route.
+_desired_controls = {}
+_control_revision = 0
+
+
+def set_camera_control(device_id: str, enabled: bool):
+    global _control_revision
+    if not device_id:
+        return 0
+    _control_revision += 1
+    if len(_desired_controls) >= 32 and device_id not in _desired_controls:
+        _desired_controls.pop(next(iter(_desired_controls)))
+    _desired_controls[device_id] = {"revision": _control_revision, "enabled": bool(enabled)}
+    return _control_revision
+
+
+@router.get('/control')
+def camera_control(request: Request, response: Response, device_id: str):
+    authenticate(request, device_id)
+    response.headers['Cache-Control'] = 'no-store'
+    return _desired_controls.get(device_id, {"revision": 0, "enabled": None})
 
 
 @router.post('/frame')
