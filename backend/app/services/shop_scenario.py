@@ -57,6 +57,7 @@ def snapshot(db):
             "roi": [zone.roi_x,zone.roi_y,zone.roi_w,zone.roi_h] if zone else [0,0,1,1],
             "state": shop_runtime.machine.get_display_state() if shop_runtime.machine else "UNKNOWN",
             "camera_live": shop_runtime.is_fresh(),
+            "frames_processed": shop_runtime.processed_frames,
             "session_id": customer.id if customer else None,
             "cart": get_cart_summary(db, customer.id) if customer else None}
 
@@ -74,6 +75,7 @@ class ShopRuntime:
         self.machine = None
         self.generation = None
         self.last_frame = None
+        self.processed_frames = 0
         self.source_owner = None
         self.last_sequence = -1
         self.candidate_frames = 0
@@ -127,6 +129,7 @@ class ShopRuntime:
         if self.last_frame is not None and now-self.last_frame > self.MAX_GAP:
             self.break_continuity()
         self.last_frame = now
+        self.processed_frames += 1
         if not self.machine:
             self.machine = ZoneStateMachine(cfg.zone_id, stable_seconds=self.STABLE_SECONDS, clock=self.clock)
         sm = self.machine
