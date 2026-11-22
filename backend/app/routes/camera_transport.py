@@ -38,6 +38,10 @@ def set_camera_control(device_id: str, enabled: bool):
     return _control_revision
 
 
+def desired_camera_control(device_id):
+    return _desired_controls.get(device_id, {"revision": 0, "enabled": None})
+
+
 def latest_camera_control_device():
     now = time.monotonic()
     fresh = [(when, device_id) for device_id, when in _recent_control_poll.items()
