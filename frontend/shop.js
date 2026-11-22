@@ -6,6 +6,7 @@ let socket=null,reconnect=null,qrTimer=null,freshTimer=null,qrLoading=false,last
 let stream=null,preview=null,roi=[0,0,1,1],drag=null,working=false,loopEpoch=0,sequence=0;
 let lastShopUpdate=0,controller=null,tabletViewer=null,controlBusy=false,framesConfirmed=false,scenarioBusy=false;
 let previewAnimation=null,lastPreviewPaint=0;
+let fullReference=null,emptyReference=null,fallbackTimer=null,fallbackLoading=false,fallbackDeviceId=null;
 const streamId=crypto.randomUUID(),fa=n=>Number(n||0).toLocaleString('fa-IR');
 function notice(text){$('message').textContent=text;}
 async function api(path,options={}){
@@ -98,6 +99,7 @@ async function showImage(data,epoch=null){
   if(epoch!==null&&epoch!==loopEpoch)return;preview=img;canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;draw();
 }
 function stopVideoPreview(){
+  if(fallbackTimer!==null){clearInterval(fallbackTimer);fallbackTimer=null;}
   if(previewAnimation!==null){cancelAnimationFrame(previewAnimation);previewAnimation=null;}
   tabletViewer?.stop();tabletViewer=null;
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
@@ -122,6 +124,32 @@ async function showTabletVideo(){
   await tabletViewer.start();
   keepPreviewLive();
 }
+async function pollTabletJpeg(){
+  if(fallbackLoading||!token||$('cameraSource').value!=='tablet'||$('video').srcObject)return;
+  fallbackLoading=true;
+  try{
+    const response=await fetch(SmartShelfApi.apiUrl('/api/admin/camera/latest-frame?raw=true'),{
+      cache:'no-store',headers:{Authorization:`Bearer ${token}`}});
+    if(response.status===204)return;
+    if(!response.ok)throw Error('تصویر تازه‌ای از سرور نرسید.');
+    const blob=await response.blob();
+    if(!blob.size)return;
+    const url=URL.createObjectURL(blob);
+    try{
+      const img=new Image();
+      await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});
+      if(!token||$('video').srcObject)return;
+      preview=img;canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;draw();
+    }finally{URL.revokeObjectURL(url);}
+  }catch(error){$('videoStatus').textContent='پیش‌نمایش JPEG موقتاً در دسترس نیست؛ ارسال هوش مصنوعی مستقل است.';}
+  finally{fallbackLoading=false;}
+}
+function startTabletJpegPreview(){
+  if(fallbackTimer!==null)return;
+  $('videoStatus').textContent='پیش‌نمایش جایگزین JPEG از سرور؛ پردازش هوش مصنوعی مستقل از WebRTC است.';
+  fallbackTimer=setInterval(pollTabletJpeg,600);
+  pollTabletJpeg();
+}
 async function openCamera(){
   if(tabletViewer){tabletViewer.stop();tabletViewer=null;}
 
@@ -129,8 +157,16 @@ async function openCamera(){
   $('video').hidden=false;await $('video').play();keepPreviewLive();
 }
 function capture(){
-  const v=$('video');if(!v.videoWidth||v.readyState<2)throw new Error('تصویر دوربین هنوز آماده نیست.');
-  const c=document.createElement('canvas'),scale=Math.min(1,1280/Math.max(v.videoWidth,v.videoHeight));c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);c.getContext('2d').drawImage(v,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.86);
+  const v=$('video');
+  const live=v.srcObject&&v.readyState>=2&&v.videoWidth>0;
+  const source=live?v:preview;
+  const width=live?v.videoWidth:preview?.naturalWidth;
+  const height=live?v.videoHeight:preview?.naturalHeight;
+  if(!source||!width||!height)throw new Error('هنوز فریم تازه برای کالیبراسیون دریافت نشده است.');
+  const c=document.createElement('canvas'),scale=Math.min(1,1280/Math.max(width,height));
+  c.width=Math.round(width*scale);c.height=Math.round(height*scale);
+  c.getContext('2d').drawImage(source,0,0,c.width,c.height);
+  return c.toDataURL('image/jpeg',.86);
 }
 function updateFrameButtons(){
   $('startCamera').disabled=working||controlBusy||scenarioBusy||!state?.enabled;
