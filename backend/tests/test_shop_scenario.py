@@ -196,3 +196,30 @@ def test_resume_with_active_customer_rejects_changed_product(demo, client, auth_
         'roi_confirmed': True,
     })
     assert response.status_code == 409
+
+
+def test_tablet_ai_control_does_not_require_webrtc(demo, client, auth_headers, monkeypatch):
+    from backend.app.ws import manager
+    from backend.app.vision.camera_feed import camera_feed
+
+    class Camera:
+        def __init__(self):
+            self.commands = []
+        async def send_json(self, payload):
+            self.commands.append(payload)
+
+    camera = Camera()
+    monkeypatch.setattr(camera_feed, "active_device_id", "paired-tablet")
+    monkeypatch.setattr(manager, "camera_connections", {"paired-tablet": camera})
+    demo.cfg.camera_source = "tablet"
+    demo.db.commit()
+    response = client.post("/api/shop/stream", headers=auth_headers, json={"enabled": True})
+    assert response.status_code == 200
+    assert response.json()["command_sent"] is True
+    assert response.json()["device_id"] == "paired-tablet"
+    assert camera.commands[-1] == {"type": "vision_control", "enabled": True}
+
+    response = client.post("/api/shop/configure", headers=auth_headers, json={"enabled": False})
+    assert response.status_code == 200
+    assert camera.commands[-1] == {"type": "vision_control", "enabled": False}
+    assert demo.db.get(ShopScenario, 1).enabled is False
